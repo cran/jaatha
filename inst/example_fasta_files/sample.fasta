@@ -1,35 +1,24 @@
-> Individual Out-1
-AAT--AAAAAAAAAAAAAAAAAAAA
-
-> Individual Out-2
-ATAA-AAAAAAAAAAAAaaaaaaaa
-
-> Individual 1-1
-AAAAA-AXAAAGGGGGGGGGGGAAA
-
-> Individual 1-2
-AAAAAAAXAGGAGGGGAGGGGGAAA
-
-> Individual 1-3
-AAAAAAAAATAAAGGGAAGGGGGGG
-
-> Individual 1-4
-AAAAAAAAAAAAAAGGAAAGGGGGG
-
-> Individual 1-5
-AAAAAAAAAAAAAAAGAAAAAAGGG
-
-> Individual 2-1
-AAAAAA-AXATAAAAAGGGGGGAAG
-
-> Individual 2-2
-AAAAAA-AXATAAAAAAGGGGGAAG
-
-> Individual 2-3
-AAAAAA-AXAAAAAAAAAGGGGAGG
-
-> Individual 2-4
-AAAAAA-AXAAAAAAAAAAGGGAGG
-
-> Individual 2-5
-AAAAAA-AXAAAAAAAAAAAAAGGG
+>Individual_Out-1
+aat--aaaaaaaaaaaaaaaaaaaa
+>Individual_Out-2
+ataa-aaaaaaaaaaaaaaaaaaaa
+>Individual_1-1
+aaaaa-a-aaagggggggggggaaa
+>Individual_1-2
+aaaaaaa-aggaggggagggggaaa
+>Individual_1-3
+aaaaaaaaataaagggaaggggggg
+>Individual_1-4
+aaaaaaaaaaaaaaggaaagggggg
+>Individual_1-5
+aaaaaaaaaaaaaaagaaaaaaggg
+>Individual_2-1
+aaaaaa-a-ataaaaaggggggaag
+>Individual_2-2
+aaaaaa-a-ataaaaaagggggaag
+>Individual_2-3
+aaaaaa-a-aaaaaaaaaggggagg
+>Individual_2-4
+aaaaaa-a-aaaaaaaaaagggagg
+>Individual_2-5
+ggaaaa-a-aaaaaaaaaaaaaggg
