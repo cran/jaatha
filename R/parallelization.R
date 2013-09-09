@@ -1,25 +1,21 @@
 # ----------------------------------------------------------------------
-# Parallelization.R
-# Functions for parallelizing Jaatha using the 'foreach' mechanism.
+# parallelization.R
+# Functions for parallelizing Jaatha using 'foreach'
 # 
-# Author:   Paul R. Staab & Lisha Naduvilezhath 
+# Author:   Paul R. Staab & Lisha Mathew 
 # Email:    staab (at) bio.lmu.de
-# Date:     2012-08-09
+# Date:     2013-09-04
 # Licence:  GPLv3 or later
 # ----------------------------------------------------------------------
 
 setParallelization <- function(jaatha) {
   cores <- jaatha@cores
   if (cores > 1) {
-    require(doMC)
-    .registerDoMC(cores)
+    if (!require(doMC)) 
+      stop("You need the package 'doMC' to run Jaatha on multiple cores.
+            This package is not available on Windows systems.") 
+    doMC::registerDoMC(cores)
   } else {
-    registerDoSEQ()
+    foreach::registerDoSEQ()
   }
-}
-
-# Ugly workaround to prevent note that registerDoMC is not visible at the moment
-# setParallelization is loaded
-.registerDoMC <- function(cores) {
-    registerDoMC(cores)
 }

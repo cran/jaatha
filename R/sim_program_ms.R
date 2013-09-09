@@ -2,7 +2,7 @@
 # sim_prog_ms.R
 # Adaptor to calling ms from a demographic model.
 # 
-# Authors:  Lisha Naduvilezhath & Paul R. Staab
+# Authors:  Lisha Mathew & Paul R. Staab
 # Date:     2012-10-05
 # Licence:  GPLv3 or later
 # --------------------------------------------------------------
@@ -44,9 +44,7 @@ generateMsOptionsCommand <- function(dm) {
     feat <- unlist(dm@features[i, ])
 
     if (type == "mutation") {
-      if (dm@externalTheta) cmd <- c(cmd,'"-t 5"', ",")
-      else 
-        cmd <- c(cmd,'"-t"', ',', feat["parameter"], ',')
+      cmd <- c(cmd,'"-t"', ',', feat["parameter"], ',')
     }
 
     if (type == "split") {
@@ -120,15 +118,10 @@ printMsCommand <- function(dm) {
 
 msOut2Jsfs <- function(dm, ms.out) {
   .log3("Called .ms.getJSFS()")
-  jsfs <- rep(0,(dm@sampleSizes[1]+1)*(dm@sampleSizes[2]+1))
-  jsfs <- matrix( .C("msFile2jsfs",
-                     as.character(ms.out),
-                     as.integer(dm@sampleSizes[1]),
-                     as.integer(dm@sampleSizes[2]),
-                     res=as.integer(jsfs),
-                     PACKAGE="jaatha")$res,
+  jsfs <- matrix(.Call("msFile2jsfs", ms.out, dm@sampleSizes[1], 
+                       dm@sampleSizes[2], dm@nLoci),
                  dm@sampleSizes[1] + 1 ,
-                 dm@sampleSizes[2] + 1 ,
+                 dm@sampleSizes[2] + 1,
                  byrow=T)
   .log3("Finished .ms.getJSFS()")
   return(jsfs)

@@ -2,12 +2,10 @@
 \alias{Jaatha.getStartingPoints}
 \title{Print Start points}
 \usage{
-  Jaatha.getStartingPoints(jObject, extThetaPossible = F)
+  Jaatha.getStartingPoints(jObject)
 }
 \arguments{
   \item{jObject}{The Jaatha options}
-
-  \item{extThetaPossible}{For internal use only.}
 }
 \value{
   a matrix with score and parameters of each start point

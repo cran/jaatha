@@ -1,3 +1,18 @@
+Version 2.1:
++ Removed the "externalTheta" option to simplify further development
++ Reworte and cleaned up many of the internal functions
++ Further seperated Jaatha and Demographic Model to simplify use of Jaatha
+in other areas
++ Added caching for log factorials
++ Ported msFile2jsfs to Rcpp
++ Removed vignettes from the package due to their long build time; The pdfs will
+be provided on Jaatha's homepage instead 
++ Added citation information to the package  
+
+Version 2.0.3:
++ Added link to github repo to package description
++ Removed unused optimization strategies
+
 Version 2.0.2:
 + Bugfix: Changed the example fasta file for compatibility with next ape version
 + Bugfix: Fixed encoding issue with bibtex for the packages vignette
@@ -7,7 +22,7 @@ Version 2.0.1:
 
 Version 2.0.0:
 + Testing
-+ Updated Documention and Vignette
++ Updated Documentation and Vignette
 + New Feature: Added caching of ms and seqgen commands
 + Changed Feature: Made use of /dev/shm optional
 + Bugfix: Multiple tmp-dirs used during multicore refined search

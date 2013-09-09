@@ -1,36 +1,22 @@
 \name{Jaatha.initialize}
 \alias{Jaatha.initialize}
-\title{Basic initialization of a Jaatha estimation}
+\title{Initialization of a Jaatha estimation for population genetics}
 \usage{
-  Jaatha.initialize(demographic.model, summary.statistics,
-    jsfs, folded = FALSE, seed = numeric(), log.level = 1,
-    log.file = "", sim.package.size = 10, cores = 1,
-    scaling.factor = 1, use.shm = FALSE)
+  Jaatha.initialize(demographic.model, jsfs, seed,
+    sim.package.size = 10, cores = 1, scaling.factor = 1,
+    use.shm = FALSE, folded = FALSE)
 }
 \arguments{
   \item{demographic.model}{The demographic model to use}
 
-  \item{summary.statistics}{The summary statistics
-  calculated from the real data}
-
-  \item{jsfs}{Instead of summary.statistics, you can also
-  input the joint site fequency spectrum of your data.
-  Jaatha will then automatically calulate summary
-  statistics out of it.}
+  \item{jsfs}{Your observed Joint Site Frequency Spectrum
+  (JSFS). Jaatha uses the JSFS as summary statistics.}
 
   \item{folded}{If 'TRUE', Jaatha will assume that the JSFS
   is folded.}
 
   \item{seed}{An integer used as seed for both Jaatha and
   the simulation software}
-
-  \item{log.level}{An integer from 0 to 3 indicating
-  Jaatha's verbosity. 0 is (almost) no output, 1 is normal
-  output, and 2 and 3 are some and heavy debug output
-  respectively}
-
-  \item{log.file}{If specified, the output will be
-  redirected to this file}
 
   \item{sim.package.size}{When running Jaatha on multiple
   cores, a singe core will always execute a whole "package"
@@ -49,9 +35,9 @@
   the missing data.}
 
   \item{use.shm}{Logical. Many modern linux distributions
-  have a shared memory ramdisk available under /dev/shm.
-  Set this to TRUE to use it for temporary files. Usually
-  gives a huge performance boost.}
+  have a shared memory file system available under
+  /dev/shm. Set this to TRUE to use it for temporary files.
+  Usually gives a huge performance boost.}
 }
 \value{
   A S4-Object of type jaatha containing the settings
@@ -60,5 +46,10 @@
   This function sets the basic parameters for an analysis
   with Jaatha and is the first step for each application of
   it.
+}
+\examples{
+dm <- dm.createThetaTauModel(c(20,25), 100)
+jsfs <- matrix(rpois(21*26, 5), 21, 26)
+jaatha <- Jaatha.initialize(dm, jsfs)
 }
 

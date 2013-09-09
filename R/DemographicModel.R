@@ -3,9 +3,9 @@
 # Class for representing a model of the evolutionary development
 # of two different species.
 # 
-# Authors:  Paul R. Staab & Lisha Naduvilezhath
+# Authors:  Paul R. Staab & Lisha Mathew 
 # Email:    staab ( at ) bio.lmu.de
-# Date:     2012-10-05
+# Date:     2013-09-04
 # Licence:  GPLv3 or later
 #--------------------------------------------------------------
 
@@ -16,7 +16,6 @@ setClass("DemographicModel" ,
                         nLoci="numeric",
                         seqLength="numeric",
                         tsTvRatio="numeric",
-                        externalTheta="logical",
                         finiteSites="logical",
                         currentSimProg="SimProgram",
                         options="list")
@@ -45,7 +44,6 @@ setClass("DemographicModel" ,
                                    stringsAsFactors=F )
 
 
-  .Object@externalTheta   <- F
   .Object@finiteSites     <- finiteSites
   .Object@sampleSizes     <- sampleSizes
   .Object@seqLength       <- seqLength
@@ -395,13 +393,6 @@ dm.getParRanges <- function(dm, inklExtTheta=T){
   return(par.ranges)
 }
 
-dm.setExternalTheta <- function(dm){
-  checkType(dm, "dm")
-  dm@externalTheta = T
-  dm <- fixTheta(dm)
-  return(dm)
-}
-
 fixTheta <- function(dm) {
   param <- dm@parameters
   param[nrow(param), "fixed"] <- T
@@ -569,10 +560,10 @@ dm.createCustomModel <- function(par.number, par.names, par.ranges, sim.exe,
 dm.addMutation <- function(dm, lower.range, upper.range, fixed.value,
                            par.new=T, new.par.name="theta", parameter) {
 
-  if ( missing(lower.range) & missing(upper.range) & missing(fixed.value) ){
-    dm@externalTheta <- T
-    upper.range <- 0
-    lower.range <- 0
+  if ( missing(lower.range) & missing(upper.range) & 
+       missing(fixed.value) & missing(parameter) ) {
+    stop("Either a parameter range or a fixed value is required. If you 
+          want to use 'externalTheta', please use Version 2.0.2")
   }
 
   if (par.new) parameter <- new.par.name
@@ -1018,13 +1009,13 @@ dm.setMutationModel <- function(dm, mutation.model,
     stop("Allowed values: ", paste(mutation.models, collapse=" "))
   
   mutation.model.nr <- seq(along = mutation.models)[mutation.models == mutation.model]
-  dm <- jaatha:::addFeature(dm, "mutation.model", "mutation.model", 
+  dm <- addFeature(dm, "mutation.model", "mutation.model", 
                             fixed.value=mutation.model.nr)
 
   if ( !missing(tstv.ratio) ) {
     if (!mutation.model %in% c("HKY", "F84"))
       stop("This mutation model does not support a ts/tv ratio")
-    dm <- jaatha:::addFeature(dm, "tstv.ratio", "tstv.ratio", fixed.value=tstv.ratio)
+    dm <- addFeature(dm, "tstv.ratio", "tstv.ratio", fixed.value=tstv.ratio)
   }
 
   if ( !missing(base.frequencies) ) {
@@ -1186,8 +1177,6 @@ dm.addOutgroup <- function(dm, separation.time) {
 #' @param dm          The demographic model according to which the simulations should be done
 #' @param parameters  A vector of parameters which should be used for the simulations. 
 #'            If a matrix is given, a simulation for each row of the matrix will be performed
-#' @param sumStatFunc The function to calculate summary statistics of the JSFS. It must return
-#'            a numeric vector.
 #' @return        A matrix where each row is the vector of summary statistics for 
 #'            the parameters in the same row of the "parameter" matrix
 #' @export
@@ -1197,54 +1186,26 @@ dm.addOutgroup <- function(dm, separation.time) {
 #' dm <- dm.addSpeciationEvent(dm,0.01,5)
 #' dm <- dm.addMutation(dm,1,20)
 #' dm.simSumStats(dm,c(1,10))
-dm.simSumStats <- function(dm, parameters, sumStatFunc){
+dm.simSumStats <- function(dm, parameters){
   .log3("Called dm.simSumStats()")
 
-  jsfs <- F
-  if (!is.matrix(parameters)) parameters <- matrix(parameters,1)
-  if (missing(sumStatFunc)) {
-    if (nrow(parameters) > 1) stop("Only one parameter combination is allowed
-                                   when not providing sumStatFunc.")
-    jsfs <- T
-    sumStatFunc  <- function(dm, jsfs){ return(as.vector(jsfs)) }
-  }
-
   checkType(dm, "dm")
+  if (!is.matrix(parameters)) parameters <- matrix(parameters, 1)
   if (dim(parameters)[2] != dm.getNPar(dm)) stop("Wrong number of parameters")
   if ( !.checkParInRange(dm,parameters) ) stop("Parameters out of range")
 
-  simProg   <- dm@currentSimProg
+  sumStats <- apply(parameters, 1, dm.simulate, dm=dm)
 
-  # nSumStats <- length(sumStatFunc(dm,jsfs=matrix(0,dm@sampleSizes[1],dm@sampleSizes[2])))
-  # nSims	  <- max(dim(parameters)[1],1)
-  # sumStats  <- matrix(0,nSims,nSumStats)
-
-  #.log2("Simulating",nSumStats,"summary statistics for",nSims,"parameter combination(s)")
-
-  if (!simProg@useSingleSimFunc) {
-    # Use the simFunc to simulate all parameter combinations at once.
-    # Still needs some thought about how to combine with the
-    # defaultSumStatFunc.
-    sumStats <- 0
-
-  } else {
-    # Use the singleSimFunc to simulate each of the parameter combinations
-    sumStats <- 
-      apply(parameters, 1,
-            function(parameter.combination){
-              .log3("Simulating for pars:", parameter.combination)
-              sim.out <- simProg@singleSimFunc(dm, parameter.combination)
-              sumStats <- sumStatFunc(dm, sim.out)
-              .log3("SumStats:", sumStats)
-              return(sumStats)
-            })
-
-    
-    sumStats <- t(sumStats)
-    if (jsfs) sumStats <- matrix(sumStats, dm@sampleSizes[1]+1,
-                                 dm@sampleSizes[2]+1)
-  }
-  
   .log3("Finished dm.simSumStats()")
   return(sumStats)
+}
+
+dm.simulate <- function(dm, pars) {
+  jsfs <- dm@currentSimProg@singleSimFunc(dm, pars)
+  return(list(pars=pars, jsfs=jsfs))
+}
+
+scaleDemographicModel <- function(dm, scaling.factor) {
+  dm@nLoci <- round(dm@nLoci / scaling.factor)
+  return(dm)
 }
