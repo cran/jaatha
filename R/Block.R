@@ -3,21 +3,17 @@
 # Class for repesenting a rectangular area of the parameter space
 # 
 # Authors:  Lisha Naduvilezhath & Paul R. Staab
-# Date:     2012-10-05
+# Date:     2013-09-04
 # Licence:  GPLv3 or later
 # --------------------------------------------------------------
 
 
-slots <- representation(nPar="numeric",         # number of parameters = number of block dimensions
-                        nSamp="numeric",        # how many samples to take
-                        nLoci="numeric",        #number of loci to use for each sampling point
-                        lowerBound="numeric",   # vector of lower bounds [in range: 0-1] 
-                        upperBound="numeric",   # vector of upper bounds [in range: 0-1] 
-                        score="numeric",        # log of the maximum (composite)
+slots <- representation(border="matrix", #[in range: 0-1] 
+                        score="numeric", # log of the maximum (composite)
 
                         # likelihood within block 
                         MLest="numeric",        # ML estimations of parameters [in range: 0-1] 
-                        parNsumstat ="array",   #contains the random parameters in this block and corresponding summary statistics 
+                        parNsumstat ="data.frame",   #contains the random parameters in this block and corresponding summary statistics 
                         weight="numeric")       #each simulation within this block will be weighted with this value in glmFitting
 
 
@@ -27,11 +23,7 @@ setClass("Block" , representation=slots)
 ## Shows the content of the slots of the Block object.
 showBlock <- function(object) {
   cat("*** Object of class BLOCK ***\n")           
-  cat(" nPar =",object@nPar,"\n")            
-  cat(" lowerBound =",object@lowerBound,"\n")           
-  cat(" upperBound =",object@upperBound,"\n")
-  cat(" nSamp =",object@nSamp,"\n")             
-  cat(" nLoci =",object@nLoci,"\n")             
+  print(object@border)
   cat(" weight =",object@weight,"\n")                      
   cat(" dimensions of parNsumstat =",
       dim(object@parNsumstat)," ")
@@ -51,61 +43,31 @@ setMethod("show", "Block", showBlock)
 rm(showBlock)
 
 
-##Function to determine if a given point is within the parameter range
-##of the given block. Bounds and point are rounded to the 5th decimal
-##place.
-isInBlock <- function(object,point) {
-  if(length(point)!=object@nPar) {
-    print(list(ERROR="Parameter dimensions unequal to block dimensions! \n")) 
-  } else{}
-  lower <- round(object@lowerBound,5)
-  upper <- round(object@upperBound,5)
-  point <- round(point,5)
-  return(all(c(lower<=point,point<=upper)))
+isInBlock <- function(block, point) {
+  length(point) != nrow(block@border) && stop("Point and block dimensions
+                                              mismatch")
+  return(all(block@border[,1]<=point & point<=block@border[,2]))
 }
 
+getCorners <- function(block) {
+  corners <- foreach(c=1:2^nrow(block@border), .combine=rbind) %do% {
+    ## converts 'c-1' to binary system,
+    ##binary system bc corner is either at lower or upper Bound
+    ##of parRange for each parameter
+    digitalCorner <- .index2blocks(value=c-1, newBase=2,
+                                   expo=nrow(block@border)) + 1
+    ## +1 bc R indices start at 1 (i.e. 1=lower and 2=upper bound)
+    corner <- sapply(1:nrow(block@border), function(p) block@border[p, digitalCorner[p]])
+    return(corner)
+  }
+  rownames(corners) <- NULL
+  colnames(corners) <- rownames(block@border)
+  return(corners)
+}
 
-## Function to determine the (starting) blockIndex of a given point in
-## the parameter range specified in jObject.
-## Returns the index of the starting block which contains the point.
-###########################################################################
-# Not used anywhere => commented
-# Paul 29.05.12
-###########################################################################
-#.getBlockNumber <- function(jObject, point){
-#	## pRange contains the boarders of all starting blocks
-#	## dim=c(#parameter,#blocks per dimension, start&end)
-#	pRange <- .calcBlockParRanges01(jObject@nPar,jObject@nBlocksPerPar)  
-#	nTotalBlocks <- (jObject@nBlocksPerPar^jObject@nPar)
-#	#if(jObject@externalTheta){nPar <- jObject@nPar+1} else {nPar <- jObject@nPar}
-#	
-#	## check if dimensions of point and jObject are same
-#	if (length(point)!=jObject@nPar){
-#		return(print(list(ERROR=paste("Dimension of point and parRange are not 
-#					       the same! dim(point): ",
-#					       length(point),"!=",jObject@nPar," \n"))))
-#	}
-#	
-#	## convert point into [0-1]-range
-#	point01 <- sapply(1:jObject@nPar, function(d) normalize01(
-#						jObject@parRange[[d]],point[d]))
-#	i <- 1
-#	## go through each block until you find the containing block
-#	while (i <= nTotalBlocks){
-#		## 'b' determines which block-index for each parameter
-#		## that is being considered
-#		b <- .index2blocks(value=i-1, newBase=jObject@nBlocksPerPar,
-#				expo=jObject@nPar) + 1  ##+1 bc R indices start with 0
-#		boundry <- sapply(1:jObject@nPar, function(p) pRange[p,b[p],])  #dim=c(2,jObject@nPar)
-#		block <- new("Block", nPar=jObject@nPar,
-#				lowerBound= boundry[1,], nLoci=1,
-#				upperBound= boundry[2,],
-#				nSamp=1)
-#		if (isInBlock(object=block,point=as.vector(point01))) {
-#			return (i)
-#		} else{
-#			i <- i+1
-#		}
-#	}
-#	cat("Point is not in the given parameter range!\n")
-#}
+printBorder <- function(block, jaatha) {
+  lower <- .deNormalizeVector(jaatha, block@border[ ,1])
+  upper <- .deNormalizeVector(jaatha, block@border[ ,2])
+  return(paste0(round(lower,3), "-", round(upper,3),
+                collapse=" x "))
+}

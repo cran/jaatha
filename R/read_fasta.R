@@ -3,7 +3,7 @@
 # Methodes for calculating the JSFS of two species based on (aligned) sequences
 # stored in fasta format.
 # 
-# Author:   Paul R. Staab & Lisha Naduvilezhath 
+# Author:   Paul R. Staab & Lisha Mathew 
 # Email:    staab (at) bio.lmu.de
 # Date:     2012-09-20
 # Licence:  GPLv3 or later
@@ -35,12 +35,12 @@
 #' @return            The calculated JSFS, as matrix.
 #' @export
 calculateJsfs <- function(ape.data, pop1.rows, pop2.rows, outgroup.rows=NA) {
-  jaatha:::checkType(pop1.rows, c("num", "vec"), T, F)
-  jaatha:::checkType(pop2.rows, c("num", "vec"), T, F)
-  jaatha:::checkType(outgroup.rows, c("num", "vec"), F, T)
+  checkType(pop1.rows, c("num", "vec"), T, F)
+  checkType(pop2.rows, c("num", "vec"), T, F)
+  checkType(outgroup.rows, c("num", "vec"), F, T)
 
   if (all(is(ape.data) == "DNAbin")) ape.data <- as.character(ape.data)
-  jaatha:::checkType(ape.data, c("mat"), F, T)
+  checkType(ape.data, c("mat"), F, T)
 
   jsfs <- markerTableToJsfs(t(ape.data), pop1.rows, pop2.rows, outgroup.rows)
   return(jsfs)

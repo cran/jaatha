@@ -2,7 +2,7 @@
 \alias{dm.simSumStats}
 \title{Simulates data according to a demographic model and calculates summary statistics form it}
 \usage{
-  dm.simSumStats(dm, parameters, sumStatFunc)
+  dm.simSumStats(dm, parameters)
 }
 \arguments{
   \item{dm}{The demographic model according to which the
@@ -11,9 +11,6 @@
   \item{parameters}{A vector of parameters which should be
   used for the simulations.  If a matrix is given, a
   simulation for each row of the matrix will be performed}
-
-  \item{sumStatFunc}{The function to calculate summary
-  statistics of the JSFS. It must return a numeric vector.}
 }
 \value{
   A matrix where each row is the vector of summary

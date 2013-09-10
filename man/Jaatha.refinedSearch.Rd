@@ -11,8 +11,8 @@
   \code{\link{Jaatha.initialize}})}
 
   \item{best.start.pos}{This is the number of best starting
-  positions found in the inital search that we will use.
-  Jaatha runs a seperate search starting from each of this
+  positions found in the initial search that we will use.
+  Jaatha runs a separate search starting from each of this
   points.}
 
   \item{sim}{The number of simulations that are performed
@@ -20,7 +20,7 @@
 
   \item{sim.final}{The number of simulations that are
   performed after the search to estimate the composite log
-  likelihood. If not specified, the value of \code{nSim}
+  likelihood. If not specified, the value of \code{sim}
   will be used}
 
   \item{epsilon}{The search stops if the improvement of the
@@ -33,7 +33,7 @@
   influence of old block in the estimation procedure}
 
   \item{max.steps}{The search will stop at this number of
-  steps if not stopped before (see epsilon)}
+  steps if not stopped before (see \code{epsilon})}
 }
 \value{
   An Jaatha object. The found values are written to the

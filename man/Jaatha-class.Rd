@@ -15,13 +15,14 @@ procedure}
   between 0 and 1)} \item{seeds}{A set of random seeds.
   First one to generate the other two.  The next one is for
   the initial search, the last is for the refined search}
-  \item{externalTheta}{If TRUE theta will estimated using
-  Watersons-estimator} \item{finiteSites}{If TRUE, we use a
-  finite sites mutation model instead of an infinite sites
-  one} \item{parNames}{The name of the parameters we
-  estimate} \item{debugMode}{If TRUE, a debug output will
-  be produced} \item{logFile}{If set, the debug output will
-  be written into this file} \item{sumStats}{The summary
+  \item{externalTheta}{Option removed in Version 2.1. Use a
+  Version 2.0.2 if you want to use external Theta.}
+  \item{finiteSites}{If TRUE, we use a finite sites
+  mutation model instead of an infinite sites one}
+  \item{parNames}{The name of the parameters we estimate}
+  \item{debugMode}{If TRUE, a debug output will be
+  produced} \item{logFile}{If set, the debug output will be
+  written into this file} \item{sumStats}{The summary
   statistics from the real data} \item{likelihood.table}{A
   matrix with the best composite log likelihood values and
   corresponding parameters} \item{sum.stats.func}{The

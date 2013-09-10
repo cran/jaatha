@@ -4,23 +4,22 @@
 # This file contains the default summary statistic functions for jaatha,
 # which take sums over different areas of the jsfs.
 # 
-# Author:   Lisha Naduvilezhath & Paul R. Staab 
+# Author:   Lisha Mathew & Paul R. Staab 
 # Email:    staab (at) bio.lmu.de
-# Date:     2012-09-14
+# Date:     2013-09-04
 # Licence:  GPLv3 or later
 # -------------------------------------------------------------------------
 
-#' These are the default summary statistics for Jaatha
-#' 
-#' @param jsfs    The joint site frequency spectrum of two populations
-#' @param dm      The corresponding demographic model. Not needed at the moment.
-#' @return        A vector with sums over different areas of the JSFS
-#' @export
-#'
-#' @examples
-#' jsfs <- matrix(rpois(26*26,5),26,26)
-#' Jaatha.defaultSumStats(jsfs = jsfs)
-Jaatha.defaultSumStats <- function(dm = NULL, jsfs) {
+# These are the default summary statistics for Jaatha
+# 
+# @param jsfs    The joint site frequency spectrum of two populations
+# @return        A vector with sums over different areas of the JSFS
+#
+# @examples
+# jsfs <- matrix(rpois(26*26,5),26,26)
+# summarizeJSFS(jsfs = jsfs)
+summarizeJSFS <- function(jsfs){
+  if (is.list(jsfs)) jsfs <- jsfs$jsfs 
   n <- nrow(jsfs)
   m <- ncol(jsfs)
   c(sum(jsfs[1,2:3]),
@@ -49,7 +48,9 @@ Jaatha.defaultSumStats <- function(dm = NULL, jsfs) {
 }
 
 
-Jaatha.defaultFoldedSumStats <- function(dm = NULL, jsfs) {
+
+summarizeFoldedJSFS <- function(jsfs) {
+  if (is.list(jsfs)) jsfs <- jsfs$jsfs 
   n <- nrow(jsfs)
   m <- ncol(jsfs)
 
@@ -68,7 +69,8 @@ Jaatha.defaultFoldedSumStats <- function(dm = NULL, jsfs) {
       sum(jsfs[4:(n-3),2:3]),
       sum(jsfs[4:(n-3),(m-2):(m-1)]),
       sum(jsfs[4:(n-3),4:(m-3)]),
-      sum(jsfs[4:(n-3),m])              )
+      sum(jsfs[4:(n-3),m])              
+      )
 
   return(sumstats)
 }
