@@ -119,7 +119,7 @@ printMsCommand <- function(dm) {
 msOut2Jsfs <- function(dm, ms.out) {
   .log3("Called .ms.getJSFS()")
   jsfs <- matrix(.Call("msFile2jsfs", ms.out, dm@sampleSizes[1], 
-                       dm@sampleSizes[2], dm@nLoci),
+                       dm@sampleSizes[2]),
                  dm@sampleSizes[1] + 1 ,
                  dm@sampleSizes[2] + 1,
                  byrow=T)
@@ -146,8 +146,9 @@ msSingleSimFunc <- function(dm, parameters) {
   jsfs  <- msOut2Jsfs(dm, ms.out)
   .log3("done. Removing tmp files...")
   unlink(ms.out)
-  return(jsfs)
+  return(list(jsfs=jsfs, pars=parameters))
 }
+
 
 finalizeMs <- function(dm) {
   dm@options[['ms.cmd']] <- generateMsOptionsCommand(dm)

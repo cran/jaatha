@@ -1,0 +1,15 @@
+RUNIT TEST PROTOCOL -- Wed Nov 20 13:54:45 2013 
+*********************************************** 
+Number of test functions: 12 
+Number of errors: 2 
+Number of failures: 1 
+
+ 
+1 Test Suite : 
+Jaatha Unit Testing - 12 test functions, 2 errors, 1 failure
+ERROR in test.confInts: Error in FUN(X[[1L]], ...) : 
+  trying to get slot "likelihood.table" from an object (class "try-error") that is not an S4 object 
+FAILURE in test.dm.simSumStats: Error in checkException(dm.simSumStats(dm.tt, c(2, 50))) : 
+  Error not generated as expected
+
+ERROR in test.initialSearch.seqgen: Error in 4:(m - 3) : argument of length 0
