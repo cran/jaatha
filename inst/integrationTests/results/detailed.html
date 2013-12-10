@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/transitional.dtd">
+<html><head><title>RUNIT TEST PROTOCOL--Wed Nov 20 13:54:45 2013</title>
+</head>
+<body><h1 TRUE>RUNIT TEST PROTOCOL--Wed Nov 20 13:54:45 2013</h1>
+<p>Number of test functions: 12</p>
+<p style=color:red>Number of errors: 2</p>
+<p style=color:red>Number of failures: 1</p>
+<hr>
+<h3 TRUE>1 Test suite</h3>
+<table border="1" width="60%" >
+<tr><th width="30%">Name</th>
+<th width="30%">Test functions</th>
+<th width="20%">Errors</th>
+<th width="20%">Failures</th>
+</tr>
+<tr><td><a href="#Jaatha Unit Testing">Jaatha Unit Testing</a></td>
+<td>12</td>
+<td bgcolor="red">2</td>
+<td bgcolor="red">1</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Errors</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#Jaatha Unit Testing_._it.custom_simulator.R_test.confInts">Jaatha Unit Testing : test.confInts</a></td>
+<td>Error in FUN(X[[1L]], ...) : 
+  trying to get slot "likelihood.table" from an object (class "try-error") that is not an S4 object 
+</td>
+</tr>
+<tr><td><a href="#Jaatha Unit Testing_._it.jaatha.R_test.initialSearch.seqgen">Jaatha Unit Testing : test.initialSearch.seqgen</a></td>
+<td>Error in 4:(m - 3) : argument of length 0
+</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Failures</h3>
+<table border="1" width="100%" >
+<tr><th width="30%">Test suite : test function</th>
+<th width="70%">message</th>
+</tr>
+<tr><td><a href="#Jaatha Unit Testing_._it.jaatha.R_test.dm.simSumStats">Jaatha Unit Testing : test.dm.simSumStats</a></td>
+<td>Error in checkException(dm.simSumStats(dm.tt, c(2, 50))) : 
+  Error not generated as expected
+
+</td>
+</tr>
+</table>
+<hr>
+<h3 TRUE>Details</h3>
+<p><a name="Jaatha Unit Testing"><h5 TRUE>Test Suite: Jaatha Unit Testing</h5>
+</a>Test function regexp: ^test.+<br/>Test file regexp: ^it.+\.[rR]$<br/>Involved directory:<br/>.<br/><ul><li><a href="./it.custom_simulator.R">Test file: it.custom_simulator.R</a><ul><li><a name="Jaatha Unit Testing_._it.custom_simulator.R_test.confInts"><u style=color:red>test.confInts: ERROR !!  </u></a>Error in FUN(X[[1L]], ...) : 
+  trying to get slot "likelihood.table" from an object (class "try-error") that is not an S4 object 
+<br/></li></ul></li><li><a href="./it.jaatha.R">Test file: it.jaatha.R</a><ul><li><a name="Jaatha Unit Testing_._it.jaatha.R_test.dm.simSumStats"><u style=color:red>test.dm.simSumStats: FAILURE !! (check number 4)  </u></a>Error in checkException(dm.simSumStats(dm.tt, c(2, 50))) : 
+  Error not generated as expected
+
+<br/></li><li><a name="Jaatha Unit Testing_._it.jaatha.R_test.initialSearch.folded">test.initialSearch.folded: (1 checks) ... OK (8.39 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.jaatha.R_test.initialSearch.normal">test.initialSearch.normal: (3 checks) ... OK (30.33 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.jaatha.R_test.initialSearch.seqgen"><u style=color:red>test.initialSearch.seqgen: ERROR !!  </u></a>Error in 4:(m - 3) : argument of length 0
+<br/></li></ul></li><li><a href="./it.sim-prog-seqgen.R">Test file: it.sim-prog-seqgen.R</a><ul><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.callSeqgen">test.callSeqgen: (2 checks) ... OK (0.14 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.F81Model">test.F81Model: (1 checks) ... OK (0.21 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.generateSeqgenOptions">test.generateSeqgenOptions: (9 checks) ... OK (0 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.GtrModel">test.GtrModel: (1 checks) ... OK (0.22 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.HkyModel">test.HkyModel: (1 checks) ... OK (0.22 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.RateHeterogenity">test.RateHeterogenity: (3 checks) ... OK (0.25 seconds)<br/></a></li><li><a name="Jaatha Unit Testing_._it.sim-prog-seqgen.R_test.seqgenSingleSimFunc">test.seqgenSingleSimFunc: (3 checks) ... OK (0.48 seconds)<br/></a></li></ul></li></ul><hr>
+<table border="0" width="80%" >
+<tr><th>Name</th>
+<th>Value</th>
+</tr>
+<tr><td>platform</td>
+<td>x86_64-pc-linux-gnu</td>
+</tr>
+<tr><td>arch</td>
+<td>x86_64</td>
+</tr>
+<tr><td>os</td>
+<td>linux-gnu</td>
+</tr>
+<tr><td>system</td>
+<td>x86_64, linux-gnu</td>
+</tr>
+<tr><td>status</td>
+<td></td>
+</tr>
+<tr><td>major</td>
+<td>3</td>
+</tr>
+<tr><td>minor</td>
+<td>0.1</td>
+</tr>
+<tr><td>year</td>
+<td>2013</td>
+</tr>
+<tr><td>month</td>
+<td>05</td>
+</tr>
+<tr><td>day</td>
+<td>16</td>
+</tr>
+<tr><td>svn rev</td>
+<td>62743</td>
+</tr>
+<tr><td>language</td>
+<td>R</td>
+</tr>
+<tr><td>version.string</td>
+<td>R version 3.0.1 (2013-05-16)</td>
+</tr>
+<tr><td>nickname</td>
+<td>Good Sport</td>
+</tr>
+<tr><td>host</td>
+<td>pinta</td>
+</tr>
+<tr><td>compiler</td>
+<td>g++</td>
+</tr>
+</table>
+</body>
+</html>
