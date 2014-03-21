@@ -30,12 +30,20 @@ dm.mig        <- dm.addSymmetricMigration(dm.tt, 1, 5)
 sum.stats.mig <- dm.simSumStats(dm.mig, c(1, 1, 5))
 jaatha.mig    <- Jaatha.initialize(dm.mig, jsfs=sum.stats.mig) 
 
+# Groups
+dm.grp <- dm.tt
+dm.grp <- dm.setLociLength(dm.grp, 100, 1) 
+dm.grp <- dm.setLociNumber(dm.grp, 15, 1) 
+dm.grp <- dm.setLociLength(dm.grp, 200, 2) 
+dm.grp <- dm.addSampleSize(dm.grp, 5:6, 3)
+sum.stats.grp <- dm.simSumStats(dm.grp, c(1, 5))
 
 # Finite Sites Models
-dm.sg <- dm.addOutgroup(dm.tt, "2*tau")
-dm.hky <- dm.setMutationModel(dm.sg, "HKY", c(0.2, 0.2, 0.3, 0.3), 2)
-dm.f81 <- dm.setMutationModel(dm.sg, "F84", c(0.3, 0.2, 0.3, 0.2), 2)
-dm.gtr <- dm.setMutationModel(dm.sg, "GTR", gtr.rates=c(0.2, 0.2, 0.1, 0.1, 0.1, 0.2))
+dm.sg <-  finalizeDM(dm.addOutgroup(dm.tt, "2*tau"))
+dm.hky <- finalizeDM(dm.setMutationModel(dm.sg, "HKY", c(0.2, 0.2, 0.3, 0.3), 2))
+dm.f81 <- finalizeDM(dm.setMutationModel(dm.sg, "F84", c(0.3, 0.2, 0.3, 0.2), 2))
+dm.gtr <- finalizeDM(dm.setMutationModel(dm.sg, "GTR", 
+                                         gtr.rates=c(0.2, 0.2, 0.1, 0.1, 0.1, 0.2)))
 
 
 # Custom Simulation Interface
@@ -71,7 +79,7 @@ smooth.simfunc <- function(x, jaatha) {
 
 smooth.obs <- smooth.simfunc(c(3, 4))
 smooth.sum.stats <- list("mat"=list(method="poisson.smoothing",
-                                    model="(i^2)*(j^2)+log(i)*log(j)",
+                                    model="(X1^2)*(X2^2)+log(X1)*log(X2)",
                                     value=smooth.obs$mat))
 
 smooth.par.ranges <- matrix(c(2, 1, 7, 7), 2, 2)
@@ -79,6 +87,5 @@ rownames(smooth.par.ranges) <- c('x', 'y')
 
 smooth.jaatha <- new("Jaatha", smooth.simfunc, smooth.par.ranges, smooth.sum.stats, 123)
 smooth.sim.data <- simulateWithinBlock(10, block.test, smooth.jaatha)
-
 
 save(list=ls(), file="test_setup.Rda")

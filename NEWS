@@ -1,3 +1,19 @@
+Version 2.3
+---------------
+Algorithm changes: 
+  - Removed epsilon. We now stop the refined search after the
+    likelihood did not improve for 10 consecutive steps.
+  - Removed weight parameter to down-weight old simulations,
+    because it had no measurable effect on the estimates.
+
+New Features: 
+  - Support for multiple groups of loci
+  - Possibility to smooth arrays of arbitrary dimension
+
+Improvements: 
+  - Clarifies 'The Jaatha HowTo'
+
+
 Version 2.2
 ---------------
 + Added function for calculating BCa confidence intervals

@@ -2,11 +2,10 @@
 \alias{Jaatha.refinedSearch}
 \title{Iterative search for the maximum composite likelihood parameters}
 \usage{
-  Jaatha.refinedSearch(jaatha, best.start.pos = 2,
-    sim = length(getParNames(jaatha)) * 25,
-    sim.final = min(sim, 100), epsilon = 2,
-    half.block.size = 0.025, weight = 0.9, max.steps = 200,
-    rerun = FALSE)
+Jaatha.refinedSearch(jaatha, best.start.pos = 2,
+  sim = length(getParNames(jaatha)) * 25, sim.final = min(sim, 100),
+  epsilon = NULL, half.block.size = 0.025, weight = NULL,
+  max.steps = 200, rerun = FALSE)
 }
 \arguments{
   \item{jaatha}{The Jaatha settings (create with
@@ -25,17 +24,17 @@
   likelihood. If not specified, the value of \code{sim}
   will be used}
 
-  \item{epsilon}{The search stops if the improvement of the
-  score is less than this for 5 times in a row.}
+  \item{epsilon}{Obsolete. Has no effect anymore and will
+  be remove on next major release.}
 
   \item{half.block.size}{The size of the new block that is
   created around a new maximum.}
 
-  \item{weight}{The weighting factor that will reduce the
-  influence of old block in the estimation procedure}
+  \item{weight}{Obsolete. Has no effect anymore and will be
+  remove on next major release.}
 
   \item{max.steps}{The search will stop at this number of
-  steps if not stopped before (see \code{epsilon})}
+  steps if not stopped before (see \code{epsilon}).}
 
   \item{rerun}{You can repeat a previously done refined
   search in Jaatha.  Do do so, just call the refined search
@@ -43,14 +42,14 @@
   refined search and set rerun to 'TRUE'.}
 }
 \value{
-  An Jaatha object. The found values are written to the
-  slot likelihood.table.
+An Jaatha object. The found values are written to the slot
+likelihood.table.
 }
 \description{
-  This function searches for the parameter combination with
-  the highest composite likelihood. Therefore it
-  iteratively searches the area (=block) around the last
-  found value for a new maximum using simulations and a
-  generalized linear model.
+This function searches for the parameter combination with
+the highest composite likelihood. Therefore it iteratively
+searches the area (=block) around the last found value for
+a new maximum using simulations and a generalized linear
+model.
 }
 

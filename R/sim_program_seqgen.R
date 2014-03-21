@@ -15,7 +15,7 @@ seqgen.features    <- c('mutation.model', 'tstv.ratio',
                         'gtr.rate.4','gtr.rate.5','gtr.rate.6',
                         'gamma.categories', 'gamma.rate')
 
-possible.sum.stats <- c("jsfs")
+possible.sum.stats <- unique(c("jsfs", "file"), getSimProgram('ms')@possible.sum.stats)
 mutation.models    <- c('HKY', 'F84', 'GTR')
 
 possible.features  <- c(getSimProgram('ms')@possible.features, seqgen.features)
@@ -37,6 +37,17 @@ checkForSeqgen <- function() {
 
   stop("No seqgen executable found. Please provide one using
        Jaatha.setSeqgenExecutable()")
+}
+
+generateMsModel <- function(dm) {
+  ms <- getSimProgram('ms')
+  dm@features <- dm@features[dm@features$type %in% ms@possible.features, ]
+  dm@sum.stats <- dm@sum.stats[dm@sum.stats %in% ms@possible.sum.stats]
+
+  if (!"trees" %in% dm@sum.stats) dm@sum.stats <- append(dm@sum.stats, "trees") 
+  if (!"file" %in% dm@sum.stats) dm@sum.stats <- append(dm@sum.stats, "file") 
+  if ("jsfs" %in% dm@sum.stats) dm@sum.stats <- dm@sum.stats[dm@sum.stats != 'jsfs']
+  return(dm)
 }
 
 #' Set the path to the executable for seqgen
@@ -157,9 +168,10 @@ generateSeqgenOptionsCmd <- function(dm) {
     stop("You must specify a finite sites mutation model for this demographic model")
   }
 
-  opts <- c(opts, '"-l"', ',', dm@seqLength, ',')
-  opts <- c(opts, '"-s"', ',', paste(getThetaName(dm), "/", dm@seqLength), ',')
-  opts <- c(opts, '"-p"', ',', dm@seqLength + 1, ',')
+  loci.length <- dm.getLociLength(dm)
+  opts <- c(opts, '"-l"', ',', loci.length, ',')
+  opts <- c(opts, '"-s"', ',', paste(getThetaName(dm), "/", loci.length), ',')
+  opts <- c(opts, '"-p"', ',', loci.length + 1, ',')
   opts <- c(opts, '"-z"', ',', 'seed', ',')
   opts <- c(opts, '"-q"', ')')
   return(opts)
@@ -184,52 +196,51 @@ seqgenOut2Jsfs <- function(dm, seqgen.file) {
   if( ! file.exists(seqgen.file) ) stop("seq-gen simulation failed!")
   if (file.info(seqgen.file)$size == 0) stop("seq-gen output is empty!")
 
-  jsfs <- matrix(.Call("seqgen2jsfs", seqgen.file, dm@sampleSizes[1], 
-                       dm@sampleSizes[2], dm@nLoci),
-                 dm@sampleSizes[1] + 1 ,
-                 dm@sampleSizes[2] + 1,
+  sample.size <- dm.getSampleSize(dm)
+  jsfs <- matrix(.Call("seqgen2jsfs", seqgen.file, sample.size[1], 
+                       sample.size[2], dm.getLociNumber(dm)),
+                 sample.size[1] + 1 ,
+                 sample.size[2] + 1,
                  byrow=T)
 
   return(jsfs)
 }
 
 seqgenSingleSimFunc <- function(dm, parameters) {
-  .log3("called msSingleSimFunc()")
-  .log3("parameter:",parameters)
   checkType(dm, "dm")
   checkType(parameters, "num")
   checkForSeqgen()
   if (length(parameters) != dm.getNPar(dm)) 
     stop("Wrong number of parameters!")
 
-  .log2("calling ms to generate tree...")
-  ms.options <- generateMsOptions(dm, parameters)
-  ms.file <- callMs(ms.options, dm)
+  sum.stats <- msSingleSimFunc(dm@options[['ms.model']], parameters)
 
-  .log2("running seq-gen")
   seqgen.options <- generateSeqgenOptions(dm, parameters)
-  .log3("options generated")
-  sim.time <- system.time(seqgen.file  <- callSeqgen(seqgen.options, ms.file))
-  .log3("finished after", sum(sim.time[-3]), "seconds")
-  .log3("simulation output in file", seqgen.file)
+  seqgen.file <- callSeqgen(seqgen.options, sum.stats[['file']])
 
-  .log2("calculating jsfs")
-  jsfs <- seqgenOut2Jsfs(dm, seqgen.file)
-  #jsfs <- matrix(1,  dm@sampleSizes[1] + 1, dm@sampleSizes[2] + 1)
+  sum.stats[['pars']] <- parameters
 
-  if (sum(jsfs) == 0) stop("No SNPs found in simulation output")
-  .log3("done.", sum(jsfs), "SNPs")
-  .log3("Removing tmp files...")
-  unlink(seqgen.file)
-  unlink(ms.file)
-  .log3("Seq-gen simulation succesfully finished")
-  return(list(jsfs=jsfs))
+  if ('jsfs' %in% dm@sum.stats) {
+    sum.stats[['jsfs']] <- seqgenOut2Jsfs(dm, seqgen.file)
+  }
+  
+  if ('file' %in% dm@sum.stats) {
+    sum.stats[['file']] <- c(ms=sum.stats[['file']],
+                             seqgen=seqgen.file)
+  } else {
+    unlink(sum.stats[['file']])
+    unlink(seqgen.file)
+    sum.stats[['file']] <- NULL
+  }
+
+  return(sum.stats)
 }
 
 finalizeSeqgen <- function(dm) {
   checkForSeqgen()
-  dm <- finalizeMs(dm)
+  dm@options[['ms.model']] <- finalizeMs(generateMsModel(dm))
   dm@options[['seqgen.cmd']] <- generateSeqgenOptionsCmd(dm)
+  stopifnot(!is.null(dm@options[['ms.model']]))
   return(dm)
 }
 
