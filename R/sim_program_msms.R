@@ -7,14 +7,13 @@
 # Licence:  GPLv3 or later
 # --------------------------------------------------------------
 
-callMsms <- function(jar.path, ms.args, msms.args, seqgen=FALSE) {
+callMsms <- function(jar.path, ms.args, msms.args) {
   out.file = getTempFile("msms")
   seed <- generateSeeds(1)
 
   # Create the command
   cmd = paste("java -jar", jar.path, as.character(msms.args), 
               "-ms", as.character(ms.args), "-seed", seed)
-  if (seqgen) cmd <- paste(cmd, '| tail -n +4 | grep -v -e "segsites" -e "//"')
   cmd <- paste(cmd, ">", out.file)
 
   # Execute the command
@@ -26,7 +25,7 @@ callMsms <- function(jar.path, ms.args, msms.args, seqgen=FALSE) {
   return(out.file)
 }
 
-checkForMsms <- function(throw.error = TRUE) {
+checkForMsms <- function(throw.error = TRUE, silent = FALSE) {
   if (isJaathaVariable('msms.jar')) {
     if (file.exists(getJaathaVariable('msms.jar'))) {  
       return(TRUE)
@@ -38,7 +37,7 @@ checkForMsms <- function(throw.error = TRUE) {
   executables <- paste(c(run.path, getwd()), "/msms.jar", sep="")
   for (exe in executables) {
     if (file.exists(exe)) {
-      .print("Using", exe, "as msms implementation\n")
+      if (!silent) message(paste("Using", exe, "as msms implementation\n"))
       setJaathaVariable('msms.jar', exe)     
       return(TRUE)
     }
@@ -115,8 +114,7 @@ msmsSimFunc <- function(dm, parameters) {
   msms.options <- paste(generateMsmsOptions(dm, parameters), collapse= " ") 
 
   # Simulate
-  out.file <- callMsms(getJaathaVariable('msms.jar'), ms.options, msms.options,
-                       'seqgen.trees' %in% dm@sum.stats$name)
+  out.file <- callMsms(getJaathaVariable('msms.jar'), ms.options, msms.options)
 
   # Parse Output
   sum.stats <- parseMsOutput(out.file, parameters, dm)

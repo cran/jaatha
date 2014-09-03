@@ -23,27 +23,39 @@
 #' be best executed on a small cluster rather than on a desktop computer.
 #'
 #' @param jaatha A jaatha object that was returned by Jaatha.refinedSearch.
-#' @param conf.level The intended confidence level of the interval. The actual
-#' level can vary slightly.
+#' @param conf.level The intended confidence level for the interval.
 #' @param replicas The number of Jaatha runs that we perform for calculating 
 #'  the confidence interval. Should be reasonable large.
 #' @param cores The number of CPU cores that will be used.
 #' @param log.folder A folder were log-files for the indiviual runs are placed.
-#' @return The Jaatha Object with confidence intervals included.
+#'  The default is to use a temporary folder, even though it is highly 
+#'  recommended to specify a folder and save the logs.
+#' @param subset This setting allows you to distribute the CI calculation on
+#'  multiple machines. You can specify which replicas should be
+#'  run on this machine. Each run is identified by an integer between one and
+#'  replicas. All runs which integers are passed as a vector in this arguments
+#'  are accutally executed. After all runs have finished, you need to manally
+#'  copy all logs into a single folder and call 
+#'  \code{\link{Jaatha.getCIsFromLogs}} on this folder.
+#' @return The Jaatha Object with confidence intervals included if 'subset' was 
+#'  not used. Nothing otherwise.
 #' @export
 Jaatha.confidenceIntervals <- function(jaatha, conf.level=0.95, 
                                       replicas=100, cores = 1, 
-                                      log.folder=paste(tempdir(), "jaatha-logs", sep="/")) {
+                                      log.folder=tempfile('jaatha-logs'),
+                                      subset=1:replicas) {
   
   # Get a seed for each replica plus for simulating data 
   set.seed(jaatha@seeds[1])
-  seeds <- generateSeeds(replicas+3)[-(1:2)]
+  # First two seeds are already used for initial & refined search. 
+  # Last seed will be used for generating the bootstrap data.
+  seeds <- generateSeeds(replicas+3)[-(1:2)] 
 
   dir.create(log.folder, showWarnings=FALSE)
+  message("Storing logs in ", log.folder)
 
-  setParallelization(cores)
-  est.pars <- jaatha@likelihood.table[1, -(1:2)]
-  est.pars.unscaled <- denormalize(est.pars, jaatha)
+  est.pars.unscaled <- Jaatha.getLikelihoods(jaatha, 1)[, -(1:2)]
+  est.pars <- normalize(est.pars.unscaled, jaatha)
   .print("ML estimates are:", round(est.pars.unscaled, 3), "\n")
 
   # Simulate data under the fitted model
@@ -51,36 +63,55 @@ Jaatha.confidenceIntervals <- function(jaatha, conf.level=0.95,
   set.seed(seeds[length(seeds)])
   sim.pars <- matrix(est.pars, replicas, getParNumber(jaatha), byrow=TRUE)
   sim.data <- runSimulations(sim.pars, cores, jaatha) 
-  sum.stats <- lapply(sim.data, convertSimDataToSumStats, sum.stats=jaatha@sum.stats)
+  sum.stats <- lapply(sim.data, convertSimDataToSumStats, 
+                      sum.stats=jaatha@sum.stats)
 
-  bs.results <- mclapply(1:replicas, rerunAnalysis, 
+  .print("Conducting Bootstrap Runs...")
+  bs.results <- mclapply(subset, rerunAnalysis, 
                          seeds=seeds, jaatha=jaatha, sum.stats=sum.stats,
                          log.folder=log.folder, mc.cores=cores)
 
-  sapply(bs.results, function(x) { 
-         if(class(x) == "try-error") {
-           print(x)
-           stop("Error while runing the bootstrap replicas")
-         }
-        })
-
-  bs.results.li <- t(sapply(bs.results, Jaatha.getLikelihoods,
-                            max.entries=1))[,-(1:2)] 
-
-  jaatha@conf.ints <- t(sapply(1:ncol(bs.results.li), function(i) {
-    par.name <- getParNames(jaatha)[i]
-    return( calcBCaConfInt(conf.level, bs.results.li[,i], est.pars.unscaled[i], replicas) )
-  }))
-  rownames(jaatha@conf.ints) <- getParNames(jaatha)
-
-  .print("\nConfidence Intervals are:")
-  print(jaatha@conf.ints)
-  return(jaatha)
+  if (all(subset == 1:replicas)) {
+    return(invisible(Jaatha.getCIsFromLogs(jaatha, conf.level, log.folder)))
+  } 
 }
 
+#' Function for calculating bootstrap confidence intervals from logs of a 
+#' previous run of Jaatha.confidenceIntervals.
+#'
+#' @param jaatha The Jaatha object that was used when calling 
+#'               Jaatha.confidenceIntervals.
+#' @param conf_level The intended confidence level of the interval. The actual
+#'               level can vary slightly.
+#' @param log_folder The folder with logs from the previous run. Just use the
+#'               folder that was given as 'log.folder' argument there.
+#' @return The Jaatha Object with confidence intervals included.
+#' @export
+Jaatha.getCIsFromLogs <- function(jaatha, conf_level=0.95, log_folder) {
+  results <- list.files(log_folder, 'run_[0-9]+.Rda$', full.names = TRUE)
+  message("Using ", length(results), " completed runs.")
+  
+  est_pars <- denormalize(jaatha@likelihood.table[1, -(1:2)], jaatha)
+  
+  bs_estimates <- t(sapply(results, function(result) {
+    load(result)
+    Jaatha.getLikelihoods(jaatha, max.entries=1)[,-(1:2)]
+  }))
+  
+  jaatha@conf.ints <- t(sapply(1:ncol(bs_estimates), function(i) {
+    par.name <- getParNames(jaatha)[i]
+    return(calcBCaConfInt(conf_level, bs_estimates[,i], 
+                          est_pars[i], length(results)) )
+  }))
+  rownames(jaatha@conf.ints) <- getParNames(jaatha)
+  
+  cat("Confidence Intervals are:\n")
+  print(jaatha@conf.ints)
+  return(invisible(jaatha))
+}
 
 rerunAnalysis <- function(idx, jaatha, seeds, sum.stats=NULL, log.folder) {
-  .print("* Starting run", idx, "...")
+  message("Starting run ", idx, " ...")
 
   # Initialize a copy of the jaatha object
   set.seed(seeds[idx])
@@ -93,7 +124,7 @@ rerunAnalysis <- function(idx, jaatha, seeds, sum.stats=NULL, log.folder) {
   jaatha <- Jaatha.refinedSearch(jaatha, rerun=TRUE)
 
   save(jaatha, file=paste0(log.folder, "/run_", idx, ".Rda"))
-  sink()
+  sink(NULL)
 
   return(jaatha)
 }
@@ -112,13 +143,14 @@ convertSimDataToSumStats <- function(sim.data, sum.stats) {
 
 
 calcBCaConfInt <- function(conf.level, bs.values, estimates, replicas) {
-  z.hat.null <- calcBiasCorrection(log(bs.values), log(estimates), replicas)
-  a.hat <- calcAcceleration(log(bs.values))
-  z.alpha <- qnorm(p=c((1-conf.level)/2, 1-(1-conf.level)/2)) 
-  quantiles.corrected <- pnorm(z.hat.null + (z.hat.null + z.alpha) / (1-a.hat*(z.hat.null + z.alpha)))  
-  conf.int <- quantile(log(bs.values), probs=quantiles.corrected) 
+  z.hat.null <- calcBiasCorrection(bs.values, estimates, replicas)
+  a.hat <- calcAcceleration(bs.values)
+  z.alpha <- qnorm(p=c((1-conf.level)/2, 1-(1-conf.level)/2))
+  quantiles.corrected <- pnorm(z.hat.null + (z.hat.null + z.alpha) / 
+                                 (1-a.hat*(z.hat.null + z.alpha)))  
+  conf.int <- quantile(bs.values, probs=quantiles.corrected) 
   names(conf.int) <- c('lower', 'upper')
-  return(exp(conf.int))
+  return(conf.int)
 }
 
 

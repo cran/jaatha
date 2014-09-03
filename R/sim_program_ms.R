@@ -9,8 +9,7 @@
 possible.features  <- c("sample", "loci.number", "loci.length",
                         "mutation", "migration", "split",
                         "recombination", "size.change", "growth")
-possible.sum.stats <- c("jsfs", "fpc", "trees", "seg.sites", 
-                        "file", "seqgen.trees")
+possible.sum.stats <- c("jsfs", "fpc", "trees", "seg.sites", "file")
 
 #' Function to perform simulation using ms 
 #' 
@@ -24,7 +23,6 @@ callMs <- function(opts, dm){
 
   ms.file <- getTempFile("ms")
   
-  .log3("Calling ms. Opts:", opts, "file:", ms.file)
   ms(sum(dm.getSampleSize(dm)), dm.getLociNumber(dm), opts, ms.file)
   return(ms.file)
 }
@@ -74,8 +72,7 @@ generateMsOptionsCommand <- function(dm) {
     else stop("Unknown feature:", type)
   }
 
-  if (any(c('trees', 'seqgen.trees') %in% dm.getSummaryStatistics(dm))) 
-    cmd <- c(cmd, '"-T",')
+  if ('trees' %in% dm.getSummaryStatistics(dm)) cmd <- c(cmd, '"-T",')
   cmd <- c(cmd, '" ")')
 }
 
