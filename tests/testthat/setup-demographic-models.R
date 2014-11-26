@@ -14,6 +14,8 @@ dm.grp <- dm.setLociLength(dm.grp, 100, 1)
 dm.grp <- dm.setLociNumber(dm.grp, 15, 1) 
 dm.grp <- dm.setLociLength(dm.grp, 200, 2) 
 dm.grp <- dm.addSampleSize(dm.grp, 5:6, 3)
+sum.stats.grp <- dm.simSumStats(dm.addSummaryStatistic(dm.grp, 'seg.sites'), 
+                                                       c(1, 3))
 
 # fpc model
 dm.fpc <- dm.createDemographicModel(c(15,20), 100, 1000)
@@ -27,7 +29,8 @@ dm.fpc <- dm.addSummaryStatistic(dm.fpc, 'fpc')
 dm.fpc <- jaatha:::calcFpcBreaks(dm.fpc, seg.sites)
 sum.stats.fpc <- dm.simSumStats(dm.addSummaryStatistic(dm.fpc, 'seg.sites'), 
                                 c(1, 2, 3))
-dm.fpc <- jaatha:::calcFpcBreaks(dm.fpc, seg.sites)
+
+
 
 # Finite Sites Models
 if (jaatha:::checkForSeqgen(FALSE, TRUE)) {
@@ -38,7 +41,6 @@ if (jaatha:::checkForSeqgen(FALSE, TRUE)) {
   dm.hky <- dm.setLociLength(dm.hky, 15)
   dm.hky@sum.stats <- data.frame()
   dm.hky <- dm.addSummaryStatistic(dm.hky, 'jsfs')
-  dm.hky <- dm.addSummaryStatistic(dm.hky, 'file')
   dm.f81 <- dm.setMutationModel(dm.sg, "F84", c(0.3, 0.2, 0.3, 0.2), 2)
   dm.gtr <- dm.setMutationModel(dm.sg, "GTR", 
                                 gtr.rates=c(0.2, 0.2, 0.1, 0.1, 0.1, 0.2))
@@ -56,4 +58,11 @@ if (jaatha:::checkForMsms(FALSE, TRUE)) {
 } else {
   warning("Msms not found. Skipping tests.")
   test_msms <- FALSE
+}
+
+if (require('ape', quietly = TRUE)) {
+  test_ape <- TRUE
+} else {
+  test_ape <- FALSE
+  warning("Package ape not available. Skipping some tests.")
 }

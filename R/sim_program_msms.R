@@ -7,14 +7,17 @@
 # Licence:  GPLv3 or later
 # --------------------------------------------------------------
 
-callMsms <- function(jar.path, ms.args, msms.args) {
+msms.features <- c("pos.selection")
+possible.features  <- c(getSimProgram('ms')$possible_features, msms.features)
+possible.sum.stats <- getSimProgram('ms')$possible_sum_stats
+
+callMsms <- function(jar.path, ms.args, msms.args, subgroup) {
   out.file = getTempFile("msms")
   seed <- generateSeeds(1)
 
   # Create the command
   cmd = paste("java -jar", jar.path, as.character(msms.args), 
-              "-ms", as.character(ms.args), "-seed", seed)
-  cmd <- paste(cmd, ">", out.file)
+              "-ms", as.character(ms.args), "-seed", seed, ">", out.file)
 
   # Execute the command
   output <- system(cmd)
@@ -47,9 +50,7 @@ checkForMsms <- function(throw.error = TRUE, silent = FALSE) {
   return(FALSE)
 }
 
-msms.features <- c("pos.selection")
-possible.features  <- c(getSimProgram('ms')$possible_features, msms.features)
-possible.sum.stats <- getSimProgram('ms')$possible_sum_stats
+
 
 # This function generates an string that contains an R command for generating
 # an msms call to the current model.
@@ -78,20 +79,31 @@ generateMsmsOptionsCommand <- function(dm) {
   cmd
 }
 
-generateMsmsOptions <- function(dm, parameters) {
-  msms.tmp <- new.env()
-
+createParameterEnv <- function(dm, parameters, ...) {
+  par_env <- new.env()
+  
   par.names <- dm.getParameters(dm)
   for (i in seq(along = par.names)){
-    msms.tmp[[ par.names[i] ]] <- parameters[i]
+    par_env[[ par.names[i] ]] <- parameters[i]
   }
-
+  
   fixed.pars <- dm@parameters[dm@parameters$fixed, ]
   if (nrow(fixed.pars) > 0) {
     for (i in 1:nrow(fixed.pars)){
-      msms.tmp[[ fixed.pars$name[i] ]] <- fixed.pars$lower.range[i]
+      par_env[[ fixed.pars$name[i] ]] <- fixed.pars$lower.range[i]
     }
   }
+  
+  additional_pars = list(...)
+  for (i in seq(along = additional_pars)) {
+    par_env[[names(additional_pars)[i]]] <- additional_pars[[i]]
+  }
+  
+  par_env
+}
+
+generateMsmsOptions <- function(dm, parameters, locus) {
+  msms.tmp <- createParameterEnv(dm, parameters, locus = locus)
 
   if ( !is.null( dm@options[['msms.cmd']] ) )
     cmd <- dm@options[['msms.cmd']]
@@ -99,7 +111,7 @@ generateMsmsOptions <- function(dm, parameters) {
     cmd <- generateMsmsOptionsCommand(dm)
   cmd <- eval(parse(text=cmd), envir=msms.tmp)
 
-  return(cmd)
+  cmd
 }
 
 msmsSimFunc <- function(dm, parameters) {
@@ -108,18 +120,29 @@ msmsSimFunc <- function(dm, parameters) {
   if (length(parameters) != dm.getNPar(dm)) 
     stop("Wrong number of parameters!")
 
-  # Generate Options
-  ms.options <- paste(sum(dm.getSampleSize(dm)), dm.getLociNumber(dm), 
-                      paste(generateMsOptions(dm, parameters), collapse=" "))
-  msms.options <- paste(generateMsmsOptions(dm, parameters), collapse= " ") 
-
-  # Simulate
-  out.file <- callMsms(getJaathaVariable('msms.jar'), ms.options, msms.options)
-
-  # Parse Output
-  sum.stats <- parseMsOutput(out.file, parameters, dm)
-
-  return(sum.stats)
+  # Run all simulation in with one ms call if they loci are identical,
+  # or call ms for each locus if there is variation between the loci.
+  if (dm.hasInterLocusVariation(dm)) {
+    sim_reps <- 1:dm.getLociNumber(dm)
+    sim_loci <- 1
+  } else {
+    sim_reps <- 1
+    sim_loci <- dm.getLociNumber(dm)
+  }
+  
+  # Run the simulation(s)
+  msms.files <- lapply(sim_reps, function(locus) {
+    ms.options <- paste(sum(dm.getSampleSize(dm)), sim_loci,
+                        paste(generateMsOptions(dm, parameters, locus), 
+                              collapse=" "))
+    msms.options <- paste(generateMsmsOptions(dm, parameters, locus), 
+                          collapse= " ")
+    #print(c(ms.options, msms.options))
+    callMsms(getJaathaVariable('msms.jar'), ms.options, msms.options)
+  })
+  
+  # Parse the simulation output
+  generateSumStats(msms.files, 'ms', parameters, dm)
 }
 
 finalizeMsms <- function(dm) {

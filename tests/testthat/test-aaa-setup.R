@@ -1,2 +1,2 @@
-source("../testsetup/custom_simulation_interface.R")
-source("../testsetup/demographic_models.R")
+source("setup-custom-simulation-interface.R")
+source("setup-demographic-models.R")

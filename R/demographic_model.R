@@ -28,7 +28,9 @@ setClass("DemographicModel" ,
 
 .init <- function(.Object, sample.size, loci.number, loci.length,
                   finiteSites, tsTvRatio){
-
+  
+  .Object <- resetSumStats(.Object)
+  
   .Object@features <- data.frame(type=character(),
                                  parameter=character(),
                                  pop.source=numeric(),
@@ -41,14 +43,11 @@ setClass("DemographicModel" ,
                                    fixed=logical(),
                                    lower.range=numeric(),
                                    upper.range=numeric(),
-                                   stringsAsFactors=F )
-
+                                   stringsAsFactors=F )  
 
   .Object <- dm.addSampleSize(.Object, sample.size)
   .Object <- dm.setLociNumber(.Object, loci.number)
   .Object <- dm.setLociLength(.Object, loci.length)
-  
-  .Object@sum.stats <- data.frame(name=character(), group=numeric())
     
   .Object@finiteSites     <- finiteSites
   .Object@tsTvRatio       <- tsTvRatio
@@ -174,7 +173,6 @@ dm.addParameter <- function(dm, par.name, lower.boundary, upper.boundary, fixed.
  
   dm <- appendToParameters(dm, par.name, fixed, lower.boundary, upper.boundary)
 
-  #dm <- makeThetaLast(dm)
   dm@finalized = FALSE
   return(dm)
 }
@@ -203,11 +201,23 @@ dm.addParameter <- function(dm, par.name, lower.boundary, upper.boundary, fixed.
 #'            possibly containing one or more previously created parameter
 #'            names.
 #' @param group     For genomic features, different groups can be created.
-#' @return          The extended demographic model.
+#' @param variance Set to a value different from 0 to introduce variation in the
+#'                 the parameter value for different loci. The 
+#'                 variation follows a gamma distribution with mean equal to
+#'                 the value provided as \code{parameter}, and variance as given
+#'                 here. Can also be set to a previously 
+#'                 created parameter, or an expression based on parameters. 
+#' @param zero.inflation If used, a zero inflated gamma distribution is 
+#'                 used to model the variablility between loci. This parameter
+#'                 should evluate to the percent of loci for which the parameter
+#'                 is 0. The values for all other loci will be drawn from the
+#'                 discretized gamma distribution.
+#' @return         The extended demographic model.
 addFeature <- function(dm, type, parameter=NA,
                        lower.range=NA, upper.range=NA, fixed.value=NA, par.new=T,
                        pop.source=NA, pop.sink=NA,
-                       time.point=NA, group=0) {
+                       time.point=NA, group=0, 
+                       variance=0, zero.inflation=0) {
   
   if (missing(par.new))     par.new <- T
   if (missing(parameter))   parameter <- NA
@@ -225,9 +235,24 @@ addFeature <- function(dm, type, parameter=NA,
   checkType(pop.sink,    c("num",  "s"), T, T)
   checkType(time.point,  c("char", "s"), T, T)
   checkType(group,       c("num",  "s"), T, T)
+  checkType(variance,    c("s"), T, T)
 
-  if (par.new) dm <- dm.addParameter(dm, parameter, lower.range, upper.range, fixed.value)
+  if (par.new) dm <- dm.addParameter(dm, parameter, lower.range, 
+                                     upper.range, fixed.value)
 
+  if (variance != 0) {
+    dm <- dm.addInterLocusVariation(dm, group)
+    parameter <- paste0('rgamma(1, ', parameter, '^2/', variance, 
+                                ', ', parameter, '/', variance, ')')
+  }
+  
+  if (zero.inflation != 0) {
+    dm <- dm.addInterLocusVariation(dm, group)
+    parameter <- paste0('ifelse(locus <= ', 
+                        zero.inflation, '*', dm.getLociNumber(dm, group),
+                        ', 0, ', parameter, ')')
+  }
+  
   # Append the feature
   dm <- appendToFeatures(dm = dm,
                          type = type,
@@ -401,7 +426,10 @@ getThetaName <- function(dm){
   searchFeature(dm, "mutation")$parameter[1]
 }
 
-
+resetSumStats <- function(dm) {
+  dm@sum.stats <- data.frame(name=character(), group=numeric())
+  dm
+}
 
 
 
@@ -501,8 +529,7 @@ dm.setLociLength <- function(dm, loci.length, group=0) {
 #' @return The number of loci in the group
 #' @export
 dm.getLociNumber <- function(dm, group=1) {
-  ln <- searchFeature(dm, type='loci.number', group=group)
-  as.integer(ln$parameter)
+  as.integer(searchFeature(dm, type='loci.number', group=group)$parameter)
 }
 
 #' Gets how long the loci in a group are
@@ -552,6 +579,16 @@ dm.getLociLength <- function(dm, group=1) {
 #'            created. You can also use R expression here, so "2*theta"
 #'            or "5*theta+2*tau" (if tau is another parameter) will also
 #'            work (also it does not make much sense).
+#' @param variance Set to a value different from 0 to introduce variation in the
+#'                 the parameter value for different loci. The 
+#'                 variation follows a gamma distribution with mean equal to
+#'                 the value provided as \code{parameter}, and variance as given
+#'                 here. Can also be set to a previously 
+#'                 created parameter, or an expression based on parameters. 
+#' @param group    Group of loci for with this feature is added. 0 means that
+#'                 the feature applies to all groups, and 1 is the default group.
+#'                 Set to 1 or an greater integer to set this feature only for 
+#'                 the corresponding group of loci. 
 #' @return    The demographic model with mutation.
 #' @export
 #'
@@ -571,7 +608,8 @@ dm.getLociLength <- function(dm, group=1) {
 #' dm <- dm.addParameter(dm, "theta", 0.01, 5)
 #' dm <- dm.addMutation(dm, par.new=FALSE, parameter="2*log(theta)+1")
 dm.addMutation <- function(dm, lower.range, upper.range, fixed.value,
-                           par.new=T, new.par.name="theta", parameter) {
+                           par.new=T, new.par.name="theta", parameter,
+                           group = 0, variance = 0) {
 
   if ( missing(lower.range) & missing(upper.range) & 
        missing(fixed.value) & missing(parameter) ) {
@@ -581,7 +619,8 @@ dm.addMutation <- function(dm, lower.range, upper.range, fixed.value,
 
   if (par.new) parameter <- new.par.name
   dm <- addFeature(dm, "mutation", parameter, lower.range, upper.range,
-                   fixed.value, par.new=par.new, time.point=NA)
+                   fixed.value, par.new=par.new, time.point=NA, 
+                   variance = variance, group = group)
   return(dm)
 }
 
@@ -662,6 +701,16 @@ dm.getSampleSize <- function(dm, group.nr=NULL) {
 #'            created. You can also use R expression here, so "2*rho"
 #'            or "5*rho+2*tau" (if tau is another parameter) will also
 #'            work (also it does not make much sense).
+#' @param variance Set to a value different from 0 to introduce variation in the
+#'                 the parameter value for different loci. The 
+#'                 variation follows a gamma distribution with mean equal to
+#'                 the value provided as \code{parameter}, and variance as given
+#'                 here. Can also be set to a previously 
+#'                 created parameter, or an expression based on parameters. 
+#' @param group    Group of loci for with this feature is added. 0 means that
+#'                 the feature applies to all groups, and 1 is the default group.
+#'                 Set to 1 or an greater integer to set this feature only for 
+#'                 the corresponding group of loci. 
 #' @return    The demographic model with recombination
 #' @export
 #'
@@ -671,11 +720,13 @@ dm.getSampleSize <- function(dm, group.nr=NULL) {
 #' dm <- dm.addRecombination(dm, fixed=20)
 #' dm <- dm.addMutation(dm, 1, 20)
 dm.addRecombination <- function(dm, lower.range, upper.range, fixed.value,
-                                par.new=T, new.par.name="rho", parameter) {
+                                par.new=T, new.par.name="rho", parameter, 
+                                group = 0, variance = 0) {
 
   if (par.new) parameter <- new.par.name
   dm <- addFeature(dm, "recombination", parameter, lower.range, upper.range,
-                   fixed.value, par.new=par.new, time.point="0")
+                   fixed.value, par.new=par.new, time.point="0",
+                   group = group, variance = variance)
   return(dm)
 }
 
@@ -1105,8 +1156,8 @@ dm.setMutationModel <- function(dm, mutation.model,
 #-------------------------------------------------------------------
 # dm.addMutationRateHeterogenity
 #-------------------------------------------------------------------
-#' Allows the mutation rate on different sites to vary according to 
-#' a Gamma Distribution.
+#' Allows the mutation rate on different sites within one locus to 
+#' vary according to a Gamma Distribution.
 #'
 #' This function adds a Gamma distributed rate heterogeneity as implemented 
 #' in 'seq-gen' to the model.
@@ -1189,13 +1240,14 @@ dm.useLociTrios <- function(dm, bases=c(250, 125, 250, 125, 250), group=0) {
   dm <- addFeature(dm, "trio.5", bases[5], par.new=FALSE, group=group)
 }
 
-dm.getLociTrioOptions <- function(dm, group=0) {
+dm.getLociTrioOptions <- function(dm, group=0, relative=FALSE) {
   trio.opts <- rep(NA_real_, 5)
   tryCatch(for (i in 1:5) {
       trio.opts[i] <- searchFeature(dm, paste0('trio.', i), group=group)$parameter
     }, error = function(e) { })
   if (any(is.na(trio.opts))) return(NA)
-  as.numeric(trio.opts)
+  if (relative) return(as.numeric(trio.opts) / dm.getLociLength(dm, group))
+  else as.numeric(trio.opts)
 }
 
 
@@ -1257,6 +1309,7 @@ dm.addOutgroup <- function(dm, separation.time) {
 # This function is highly experimental. Don't use it yet.
 dm.addPositiveSelection <- function(dm, min.strength, max.strength, fixed.strength, 
                          par.new=T, new.par.name="s", parameter, 
+                         variance = 0, fraction.neutral = 0,
                          population, at.time, group=0) {
 
   checkType(population, c("num",  "s"), T, F)
@@ -1265,7 +1318,8 @@ dm.addPositiveSelection <- function(dm, min.strength, max.strength, fixed.streng
   if (par.new) parameter <- new.par.name
 
   dm <- addFeature(dm, "pos.selection", parameter, min.strength, max.strength,
-                   fixed.strength, par.new, population, NA, at.time, group)
+                   fixed.strength, par.new, population, NA, at.time, group,
+                   variance = variance, zero.inflation = fraction.neutral)
 
   return(dm)
 }
@@ -1428,4 +1482,14 @@ scaleDemographicModel <- function(dm, scaling.factor) {
                      group)
   }
   return(dm)
+}
+
+dm.addInterLocusVariation <- function(dm, group = 0) {
+  if (dm.hasInterLocusVariation(dm, group)) return(dm)
+  dm <- addFeature(dm, 'inter_locus_variation', par.new = FALSE, group = group)
+  dm
+}
+
+dm.hasInterLocusVariation <- function(dm, group = 0) {
+  nrow(searchFeature(dm, 'inter_locus_variation', group = group)) > 0
 }

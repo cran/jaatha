@@ -8,24 +8,10 @@
 
 possible.features  <- c("sample", "loci.number", "loci.length",
                         "mutation", "migration", "split",
-                        "recombination", "size.change", "growth")
-possible.sum.stats <- c("jsfs", "fpc", "trees", "seg.sites", "file")
+                        "recombination", "size.change", "growth",
+                        "inter_locus_variation")
+possible.sum.stats <- c("jsfs", "fpc", "trees", "seg.sites", "pmc", "file")
 
-#' Function to perform simulation using ms 
-#' 
-#' @param opts The options to pass to ms. Must either be a character or character
-#' vector.
-#' @param dm The demographic model we are using
-#' @return The file containing the output of ms
-callMs <- function(opts, dm){
-  if (missing(opts)) stop("No options given!")
-  opts <- unlist(strsplit(opts, " "))
-
-  ms.file <- getTempFile("ms")
-  
-  ms(sum(dm.getSampleSize(dm)), dm.getLociNumber(dm), opts, ms.file)
-  return(ms.file)
-}
 
 # This function generates an string that contains an R command for generating
 # an ms call to the current model.
@@ -40,9 +26,7 @@ generateMsOptionsCommand <- function(dm) {
     feat <- unlist(dm@features[i, ])
 
     if ( type == "mutation" ) {
-      if (any(c('seg.sites', 'jsfs', 'fpc') %in% dm.getSummaryStatistics(dm))) { 
-        cmd <- c(cmd,'"-t"', ',', feat["parameter"], ',')
-      }
+      cmd <- c(cmd,'"-t"', ',', feat["parameter"], ',')
     }
 
     else if (type == "split") {
@@ -68,7 +52,8 @@ generateMsOptionsCommand <- function(dm) {
                feat["pop.source"], ',', feat["parameter"], ',')
       }
 
-    else if (type %in% c("sample", "loci.number", "loci.length", "pos.selection")) {}
+    else if (type %in% c("sample", "loci.number", "loci.length", 
+                         "pos.selection", "inter_locus_variation")) {}
     else stop("Unknown feature:", type)
   }
 
@@ -76,7 +61,7 @@ generateMsOptionsCommand <- function(dm) {
   cmd <- c(cmd, '" ")')
 }
 
-generateMsOptions <- function(dm, parameters) {
+generateMsOptions <- function(dm, parameters, subgroup) {
   ms.tmp <- new.env()
 
   par.names <- dm.getParameters(dm)
@@ -119,44 +104,29 @@ printMsCommand <- function(dm) {
 msSingleSimFunc <- function(dm, parameters) {
   checkType(dm, "dm")
   checkType(parameters, "num")
-
   if (length(parameters) != dm.getNPar(dm)) stop("Wrong number of parameters!")
 
-  ms.options <- generateMsOptions(dm, parameters)
-  sim.time <- system.time(ms.out <- callMs(ms.options, dm))
-
-  sum.stats <- parseMsOutput(ms.out, parameters, dm)
-
-  return(sum.stats)
-}
-
-parseMsOutput <- function(out.file, parameters, dm) {
-  dm.sum.stats = dm.getSummaryStatistics(dm)
-  
-  # Parse the output & generate additional summary statistics
-  if ('fpc' %in% dm.sum.stats) {
-    breaks.near <- dm@options[['fpc.breaks.near']]
-    breaks.far <- dm@options[['fpc.breaks.far']]
-    stopifnot(!is.null(breaks.near))
-    stopifnot(!is.null(breaks.far))
-    
-    sum.stats <- parseOutput(out.file, dm.getSampleSize(dm), dm.getLociNumber(dm), 0, 
-                             'jsfs' %in% dm.sum.stats, 'seg.sites' %in% dm.sum.stats,
-                             TRUE, breaks.near, breaks.far)
+  # Run all simulation in with one ms call if they loci are identical,
+  # or call ms for each locus if there is variation between the loci.
+  if (dm.hasInterLocusVariation(dm)) {
+    sim_reps <- 1:dm.getLociNumber(dm)
+    sim_loci <- 1
   } else {
-    sum.stats <- parseOutput(out.file, dm.getSampleSize(dm), dm.getLociNumber(dm), 0, 
-                             'jsfs' %in% dm.sum.stats, 'seg.sites' %in% dm.sum.stats,
-                             FALSE)
+    sim_reps <- 1
+    sim_loci <- dm.getLociNumber(dm)
   }
   
-  sum.stats[['pars']] <- parameters
-  if ("file" %in% dm.sum.stats) {
-    sum.stats[['file']] <- out.file
-  } else {
-    unlink(out.file)
-  }
+  # Do the actuall simulation
+  ms.files <- lapply(sim_reps, function(locus) {
+    ms.options <- generateMsOptions(dm, parameters, locus)
+    ms.file <- getTempFile('ms')
+    ms(sum(dm.getSampleSize(dm)), sim_loci, 
+       unlist(strsplit(ms.options, " ")), ms.file)
+    ms.file
+  })
   
-  sum.stats
+  # Parse & return the simulation output
+  generateSumStats(ms.files, 'ms', parameters, dm)
 }
 
 finalizeMs <- function(dm) {

@@ -1,14 +1,53 @@
 context("Demographic Model")
 
-test_that("test.addFeature", {
-  dm <- dm.createDemographicModel(11:12, 100)
-  n.feat <- nrow(dm@features)
-  dm <- addFeature(dm, type = "split", parameter = "tau", lower.range = 1, 
+test_that("addFeature works", {
+  dm_tmp <- dm.createDemographicModel(11:12, 100)
+  n.feat <- nrow(dm_tmp@features)
+  dm_tmp <- addFeature(dm_tmp, type = "split", parameter = "tau", lower.range = 1, 
                    upper.range = 10)
-  expect_equal(nrow(dm@features), n.feat + 1)
-  dm <- addFeature(dm, "mutation", "theta", fixed.value = 5, 
+  expect_equal(nrow(dm_tmp@features), n.feat + 1)
+  dm_tmp <- addFeature(dm_tmp, "mutation", "theta", fixed.value = 5, 
                    pop.source = 1, pop.sink = 2, time.point = "t2", group = 3)
-  expect_equal(nrow(dm@features), n.feat + 2)
+  expect_equal(nrow(dm_tmp@features), n.feat + 2)
+  
+  # Test variance
+  dm_tmp <- dm.createDemographicModel(11:12, 100)
+  dm_tmp <- addFeature(dm_tmp, 'mutation', parameter = 'theta', variance = '10')
+  expect_true(dm.hasInterLocusVariation(dm_tmp))
+  par_expr <- searchFeature(dm_tmp, 'mutation')$parameter
+  theta = 5
+  sim <- sapply(1:1000, function(x) eval(parse(text=par_expr)))
+  expect_true(abs(mean(sim) - theta) < .3)
+  
+  # Test zero.inflation
+  dm_tmp <- dm.createDemographicModel(11:12, 100)
+  dm_tmp <- addFeature(dm_tmp, 'mutation', parameter = 'theta', 
+                       zero.inflation = '.1')
+  expect_true(dm.hasInterLocusVariation(dm_tmp))
+  
+  par_expr <- searchFeature(dm_tmp, 'mutation')$parameter
+  theta = 5
+  locus <- 1; expect_equal(eval(parse(text=par_expr)), 0)
+  locus <- 5; expect_equal(eval(parse(text=par_expr)), 0)
+  locus <- 10; expect_equal(eval(parse(text=par_expr)), 0)
+  locus <- 11; expect_equal(eval(parse(text=par_expr)), 5)
+  locus <- 30; expect_equal(eval(parse(text=par_expr)), 5)
+  locus <- 72; expect_equal(eval(parse(text=par_expr)), 5)  
+  
+  # Test zero.inflation & variance
+  dm_tmp <- dm.createDemographicModel(11:12, 100)
+  dm_tmp <- addFeature(dm_tmp, 'mutation', parameter = 'theta', 
+                       variance = '10', zero.inflation = '.1')
+  expect_true(dm.hasInterLocusVariation(dm_tmp))
+  par_expr <- searchFeature(dm_tmp, 'mutation')$parameter
+  theta = 5
+  sim <- sapply(1:1000, function(x) { 
+    locus <- x %% 100; 
+    eval(parse(text=par_expr))
+  })
+  expect_true(abs(mean(sim) - theta*0.9) < .3)
+  expect_equal(sum(sim == 5), 0)
+  expect_true(sum(sim == 0) > 80)
 })
 
 test_that("test.addParameter", {
@@ -64,15 +103,11 @@ test_that("test.dm.addSummaryStatistics", {
   expect_true(all(dm.getSummaryStatistics(dm) == c("jsfs", 
                                                    "seg.sites")))
   dm <- dm.addSummaryStatistic(dm, "file", group = 2)
-  expect_equal(length(dm.getSummaryStatistics(dm, group = 1)), 
-               2)
-  expect_equal(length(dm.getSummaryStatistics(dm, group = 2)), 
-               3)
+  expect_equal(length(dm.getSummaryStatistics(dm, group = 1)), 2)
+  expect_equal(length(dm.getSummaryStatistics(dm, group = 2)), 3)
   dm <- dm.addSummaryStatistic(dm, "fpc", group = 1)
-  expect_equal(length(dm.getSummaryStatistics(dm, group = 1)), 
-               3)
-  expect_equal(length(dm.getSummaryStatistics(dm, group = 2)), 
-               3)
+  expect_equal(length(dm.getSummaryStatistics(dm, group = 1)), 3)
+  expect_equal(length(dm.getSummaryStatistics(dm, group = 2)), 3)
   expect_error(dm.addSummaryStatistic(dm, "no.existing.sumstat"))
   expect_error(dm.addSummaryStatistic(dm, 1:10))
 })
@@ -309,4 +344,63 @@ test_that("getTrioOptions works", {
                            group=2)
   expect_true(is.na(dm.getLociTrioOptions(dm.lt)))
   expect_equal(dm.getLociTrioOptions(dm.lt, group=2), c(10, 5, 20, 5, 10))
+})
+
+test_that("Adding and Getting inter locus variation works", {
+  expect_false(dm.hasInterLocusVariation(dm.tt))
+  
+  dm_tmp <- dm.addInterLocusVariation(dm.tt, 0)
+  expect_true(dm.hasInterLocusVariation(dm_tmp))
+  dm_tmp <- dm.addInterLocusVariation(dm_tmp, 0)
+  expect_true(dm.hasInterLocusVariation(dm_tmp))
+  expect_equal(nrow(searchFeature(dm_tmp, 'inter_locus_variation')), 1)
+  
+  dm_tmp <- dm.addInterLocusVariation(dm.tt, 2)
+  expect_false(dm.hasInterLocusVariation(dm_tmp))  
+  expect_false(dm.hasInterLocusVariation(dm_tmp, 1))
+  expect_true(dm.hasInterLocusVariation(dm_tmp, 2))  
+})
+
+test_that("test.printEmptyDM", {
+  tmp_file <- tempfile()
+  sink(tmp_file)
+  dm <- dm.createDemographicModel(25:26, 100)
+  print(dm)
+  sink(NULL)
+  unlink(tmp_file)
+})
+
+test_that("test.printGroupDM", {
+  tmp_file <- tempfile()
+  sink(tmp_file)
+  print(dm.grp)
+  sink(NULL)
+  unlink(tmp_file)
+})
+
+test_that("addMutation works", {
+  dm_tmp <- dm.createDemographicModel(5:6, 10, 1000)
+  dm_tmp <- dm.addSpeciationEvent(dm_tmp, 0.01, 5, new.time.point.name="tau")  
+  dm_tmp <- dm.addRecombination(dm_tmp, fixed.value=2)
+  dm_tmp2 <- dm.addMutation(dm_tmp, 1, 20)
+  
+  expect_equal(searchFeature(dm_tmp2, "mutation")$parameter, 'theta')
+  expect_equal(nrow(searchFeature(dm_tmp2, "mutation")), 1)  
+  
+  dm_tmp3 <- dm.addMutation(dm_tmp, 1, 20, variance = 20)
+  expect_equal(nrow(searchFeature(dm_tmp3, "mutation")), 1)
+})
+
+test_that("addRecombination works", {
+  dm_tmp <- dm.createDemographicModel(5:6, 10, 1000)
+  dm_tmp <- dm.addSpeciationEvent(dm_tmp, 0.01, 5, new.time.point.name="tau")  
+  dm_tmp <- dm.addRecombination(dm_tmp, fixed.value=2)
+  dm_tmp <- dm.addMutation(dm_tmp, 1, 20)
+  
+  expect_equal(searchFeature(dm_tmp, "recombination")$parameter, 'rho')
+  expect_equal(nrow(searchFeature(dm_tmp, "recombination")), 1)  
+  
+  dm_tmp <- dm.addRecombination(dm_tmp, 1, 20, variance = 20,
+                                new.par.name = 'rho2', group = 2)
+  expect_equal(nrow(searchFeature(dm_tmp, "recombination")), 2)
 })
