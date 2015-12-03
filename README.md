@@ -1,62 +1,85 @@
-Jaatha's README
-===============
+[![Linux Build Status](https://travis-ci.org/statgenlmu/jaatha.svg?branch=master)](https://travis-ci.org/statgenlmu/jaatha) 
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/g4adpum1pkyn7ajn/branch/master?svg=true)](https://ci.appveyor.com/project/paulstaab/jaatha/branch/master)
+[![Coverage Status](https://coveralls.io/repos/statgenlmu/jaatha/badge.svg?branch=master&service=github)](https://coveralls.io/github/statgenlmu/jaatha?branch=master)
+[![CRAN Status](http://www.r-pkg.org/badges/version/jaatha)](https://cran.r-project.org/web/packages/jaatha/)
 
-Jaatha is a fast parameter estimation method primarily designed for Evolutionary
-Biology. The method is described in 
 
-> Mathew, L. A., Staab, P. R., Rose, L. E. and Metzler, D. (2013), 
-> [Why to account for finite sites in population genetic studies and 
-> how to do this with Jaatha 2.0][1]. Ecology and Evolution.
+Jaatha
+======
 
-Practical instructions for running Jaatha are provided in the 
-[The Jaatha HowTo][2]. Instructions how to use Jaatha with a non-standard 
-simulation method are given in the [Custom Simulation Method HowTo][3]. 
+Jaatha is an estimation method that uses computer simulations to produce
+maximum-likelihood estimates even when the likelihood function can not be
+evaluated directly. It can be applied whenever it is feasible to conduct many
+simulations, but works best when the data is at least approximately Poisson
+distributed.
 
-Jaatha is developed openly on [GitHub][4]. Feel free to open an issue there if 
-you encounter problems using Jaatha or have suggestions for future versions.
+Jaatha was originally designed for demographic inference in evolutionary
+biology. It has optional support for conducting coalescent simulation using
+the [coala](https://github.com/statgenlmu/coala) R package, but can also be 
+used for different applications.
+
+Jaatha is implemented as an [R](https://www.r-project.org) package and available on
+[CRAN](https://cran.r-project.org/web/packages/jaatha/).
+
 
 
 Installation
 ------------
 
-## Stable Version from CRAN:
-
-[![Build Status](https://travis-ci.org/paulstaab/jaatha.png?branch=master)](https://travis-ci.org/paulstaab/jaatha)
-
-To install the current stable version of jaatha from CRAN, simply type
+Jaatha can be installed from CRAN using the `install.packages` command:
 
 ```R
 install.packages('jaatha')
-```
-
-in R.
-
-## Development Version from GitHub  
-
-[![Build Status](https://travis-ci.org/paulstaab/jaatha.png?branch=develop)](https://travis-ci.org/paulstaab/jaatha)
-
-You can install the development version from GitHub using: 
-
-```R
-devtools::install_github('paulstaab/jaatha', ref='develop')
 ```
 
 
 Usage
 -----
 
-Please refer to the [The Jaatha HowTo][2] for usage information.
+The R package includes an introduction vignette that explains how a jaatha
+analysis is conducted. After the package is installed, you can open the
+vignette using:
+
+```R
+vignette("jaatha-intro")
+```
+
+A second vignette called `jaatha-evolution` describes how jaatha can be used
+together with `coala` for demographic inference.
+
+Further help is provided using R's help system, in particular via `?jaatha`,
+`?create_jaatha_model` and `?create_jaatha_data`.
 
 
-Links
------
 
-[1]: http://onlinelibrary.wiley.com/doi/10.1002/ece3.722/abstract
-[2]: https://github.com/paulstaab/jaatha/raw/master/howtos/jaatha_howto.pdf
-[3]: https://github.com/paulstaab/jaatha/raw/master/howtos/custom_simulator_howto.pdf
-[4]: https://github.com/paulstaab/jaatha
+References
+----------
 
-* [Jaatha's Homepage](http://evol.bio.lmu.de/_statgen/software/jaatha)
-* [Source Code on GitHub](https://github.com/paulstaab/jaatha)
-* [Bug tracker](https://github.com/paulstaab/jaatha/issues)
-* [Jaatha's page on CRAN](http://cran.r-project.org/web/packages/jaatha/index.html)
+Jaatha's original algorithm is described in the publication:
+
+> L. Naduvilezhath, L.E. Rose and D. Metzler:
+> Jaatha: a fast composite-likelihood approach to estimate demographic 
+> parameters. Molecular Ecology 20(13):2709-23 (2011).
+
+The revised version of the algorithm that is implemented in this package 
+is described in:
+
+> L.A. Mathew, P.R. Staab, L.E. Rose and D. Metzler:
+> [Why to account for finite sites in population genetic studies and 
+> how to do this with Jaatha 2.0](http://onlinelibrary.wiley.com/doi/10.1002/ece3.722/abstract). 
+> Ecology and Evolution (2013).
+
+
+
+Development
+-----------
+
+Jaatha is developed openly on [GitHub](https://github.com/statgenlmu/jaatha). 
+Feel free to open an issue there if you encounter problems using Jaatha or 
+have suggestions for future versions.
+
+The current development version can be installed using:
+
+```R
+devtools::install_github('statgenlmu/jaatha')
+```

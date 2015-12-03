@@ -1,0 +1,62 @@
+---
+title: "Demographic Inference with Jaatha"
+author: "Paul Staab"
+date: "jaatha `r packageVersion('jaatha')`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using Jaatha for Demographic Inference}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+When used for demographic inference, Jaatha supports using the package `coala` 
+as simulation engine. If these packages do not suit your needs, it is of course 
+also possible to use the normal interface described in the `Introduction` 
+vignette.
+
+
+Creating a Model
+----------------
+Jaatha automatically creates a simulation function, parameter ranges and 
+summary statistics from a `coala` model. We can for example specify a simple 
+isolation-with-migration model using `par_range`s to mark parameters we want
+to estimate with Jaatha: 
+
+```{r}
+library(coala)
+model <- coal_model(c(10, 15), 100) +
+  feat_mutation(par_range("theta", 1, 10)) +
+  feat_migration(par_range("m", 0, 3), symmetric = TRUE) +
+  feat_pop_merge(par_range("t_split", 0.1, 2), 2, 1) + 
+  feat_recombination(1) +
+  sumstat_jsfs()
+```
+
+We can now just pass this `coala` model to the `create_jaatha_model` function
+to convert it into a Jaatha model:
+
+```{r}
+library(jaatha)
+jaatha_model <- create_jaatha_model(model)
+```
+
+This uses `coala` for the simulations, gets the parameter ranges specified with
+`par_range` and uses summary statistics added to the model.
+Coala supports a wide range of models. Please refer to its documentation for
+more information.
+
+
+
+Importing Data
+--------------
+You can use coala's `calc_sumstats_form_data` function to calculate the summary
+statistic for genetic data. The output of this function can be directly passed
+on to `create_jaatha_data`.
+
+
+
+Running Jaatha
+--------------
+From here on, you can estimate parameters using the `jaatha` as described in the
+introduction vignette.
+

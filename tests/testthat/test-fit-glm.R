@@ -1,59 +1,43 @@
 context("GLM Fitting")
 
-test_that("test.convertSimResultsToDataFrame", {
-  smooth.df <- convertSimResultsToDataFrame(smooth.sim.data, 
-                                            "mat")
-  expect_true(is.data.frame(smooth.df))
-  expect_equal(5, ncol(smooth.df))
-  expect_equal(length(as.vector(smooth.sim.data[[1]]$mat)) * 
-                 length(smooth.sim.data), nrow(smooth.df))
-  expect_false(is.null(colnames(smooth.df)))
-  expect_true(all(colnames(smooth.df) == c("x", "y", "X1", 
-                                           "X2", "sum.stat")))
-  smooth.df <- convertSimResultsToDataFrame(smooth.sim.data, 
-                                            "mat", smooth.border.sum.stats$mat$border.mask)
-  expect_true(is.data.frame(smooth.df))
-  expect_equal(5, ncol(smooth.df))
-  expect_true(all(smooth.df$X1 %in% 1:10))
-  expect_true(all(smooth.df$X2 %in% 1:12))
-  test.sim.data <- list(list(pars.normal = c(u = 1, v = 2, 
-                                             w = 3), ar = array(1, c(2, 3, 4))))
-  smooth.df <- convertSimResultsToDataFrame(test.sim.data, 
-                                            "ar")
-  expect_true(is.data.frame(smooth.df))
-  expect_equal(dim(smooth.df), c(24, 7))
-  expect_true(all(colnames(smooth.df) == c("u", "v", "w", "X1", 
-                                           "X2", "X3", "sum.stat")))
+
+test_that("fit_glm works for PoiInd", {
+  model <- create_test_model()
+  data <- create_test_data(model)
+  block <- create_block(matrix(c(0, 0, 1, 1), 2))
+  sim_data <- model$simulate(block$sample_pars(10), data, 1)
+  
+  glms <- fit_glm(model$get_sum_stats()[[1]], sim_data)
+  expect_true(is.list(glms))
+  expect_equal(10, length(glms))
+  
+  glms <- fit_glm(model$get_sum_stats()[[2]], sim_data)
+  expect_true(is.list(glms))
+  expect_equal(1, length(glms))
+  
+  expect_error(fit_glm(1:10, sim_data))
 })
 
-test_that("test.fitGlm", {
-  glms.fitted.csi <- fitGlm(sim.data.csi, jaatha.csi)
-  expect_true(is.list(glms.fitted.csi))
-  expect_equal(1, length(glms.fitted.csi))
-  expect_equal(length(sim.data.csi[[1]]$poisson.vector), 
-               length(glms.fitted.csi$poisson.vector))
-  expect_true(all(sapply(glms.fitted.csi$poisson.vector, is)[1, ] == "glm"))
-  glms.fitted.smooth <- fitGlm(smooth.sim.data, smooth.jaatha)
+
+test_that("fit_glm works for PoiSmooth", {
+  skip("Smoothing not implemented")
+  glms.fitted.smooth <- fit_glm(smooth_jaatha, smooth_sim_data)
   expect_true(is.list(glms.fitted.smooth))
   expect_equal(1, length(glms.fitted.smooth))
-  expect_true(is.list(glms.fitted.smooth$mat))
-  expect_equal(1, length(glms.fitted.smooth$mat))
-  expect_true("glm" %in% is(glms.fitted.smooth$mat[[1]]))
+  expect_true(is.list(glms.fitted.smooth$csi))
+  expect_equal(1, length(glms.fitted.smooth$csi))
+  expect_true("glm" %in% is(glms.fitted.smooth$csi[[1]]))
 })
 
-test_that("test.fitGlm.Smoothing", {
-  glm.fitted <- fitGlm(smooth.sim.data, smooth.jaatha)
-  expect_true(is.list(glm.fitted$mat))
-  expect_equal(1, length(glm.fitted$mat))
-  expect_true("glm" %in% is(glm.fitted$mat[[1]]))
-})
 
-test_that("test.fitGlm.Smoothing.border", {
-  glm.fitted <- fitGlm(smooth.sim.data, smooth.border.jaatha)
-  expect_true(is.list(glm.fitted$mat))
-  expect_equal(2, length(glm.fitted$mat))
-  expect_true("glm" %in% is(glm.fitted$mat[["smooth"]]))
-  expect_true(is.list(glm.fitted$mat$border))
-  expect_equal(40, length(glm.fitted$mat$border))
+test_that("fit_glm works", {
+  model <- create_test_model()
+  data <- create_test_data(model)
+  block <- create_block(matrix(c(0, 0, 1, 1), 2))
+  sim_data <- model$simulate(block$sample_pars(10), data, 1)
+  
+  glm_fit <- fit_glm(model, sim_data)
+  expect_that(glm_fit, is_a("list"))
+  expect_equal(length(glm_fit), 2)
+  expect_equal(names(glm_fit), c("id", "sum"))
 })
-
