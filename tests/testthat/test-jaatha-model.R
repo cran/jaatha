@@ -13,14 +13,14 @@ test_that("jaatha model can be initialized", {
 
 test_that("it checks that the simfunc has one arguments", {
   sim_func <- function(x, y) rpois(10, x)
-  par_ranges = matrix(c(0.1, 0.1, 10, 10), 2, 2)
+  par_ranges <- matrix(c(0.1, 0.1, 10, 10), 2, 2)
   expect_error(create_jaatha_model(sim_func, par_ranges, list(stat_identity())))
 })
 
 
 test_that("adding summary statistics works", {
   sim_func <- function(x) rpois(10, x)
-  par_ranges = matrix(c(0.1, 0.1, 10, 10), 2, 2)
+  par_ranges <- matrix(c(0.1, 0.1, 10, 10), 2, 2)
   
   model <- create_jaatha_model(sim_func, par_ranges, list(stat_identity()))
   expect_equal(model$get_sum_stats(), list("id" = stat_identity()))
@@ -80,6 +80,11 @@ test_that("failing simulations are detected", {
   test_data <- create_test_data(create_test_model())
   expect_error(model$simulate(pars = matrix(1, 2, 2), test_data, cores = 1))
   suppressWarnings(
+    # Always fails on Windows
     expect_error(model$simulate(pars = matrix(1, 2, 2), test_data, cores = 2))
   )
+  
+  frame_dumps <- list.files(tempdir(), "jaatha_frame_dump_*")
+  expect_gte(length(frame_dumps), 1)
+  unlink(frame_dumps)
 })

@@ -14,7 +14,8 @@ jaatha_model_class <- R6Class("jaatha_model",
              "' in the model")
       }
       private$sum_stats[[name]] <- stat
-    }
+    },
+    slow_sim = FALSE
   ),
   public = list(
     initialize = function(sim_func, par_ranges, sum_stats, 
@@ -47,7 +48,18 @@ jaatha_model_class <- R6Class("jaatha_model",
       sim_data <- mclapply(1:nrow(pars), function(i) {
         set.seed(seeds[i])
         sim_pars <- private$par_ranges$denormalize(pars[i, ])
-        sim_result <- private$sim_func(sim_pars)
+        
+        # Simulate and dump frames if an error occurs
+        withCallingHandlers({
+          sim_result <- private$sim_func(sim_pars)
+        }, error = function(e) {
+          error_dump <- tempfile("jaatha_frame_dump_", fileext = ".Rda")
+          dump.frames("sim_error_dump")
+          save("sim_error_dump", file = error_dump)
+          stop(paste(e$message, "[Frame dump written to", error_dump, "]"), 
+               call. = FALSE)
+        })
+        
         
         # Calculate Summary Statistics
         sum_stats <- lapply(private$sum_stats, function(sum_stat) {
@@ -59,7 +71,7 @@ jaatha_model_class <- R6Class("jaatha_model",
         sum_stats$pars_normal <- pars[i, ]
         
         sum_stats
-      }, mc.preschedule = TRUE, mc.cores = cores)
+      }, mc.preschedule = !private$slow_sim, mc.cores = cores)
       
       failed <- vapply(sim_data, is.error, logical(1))
       if (any(failed)) {
@@ -85,6 +97,8 @@ jaatha_model_class <- R6Class("jaatha_model",
         
         if (time < 1) message("A simulation takes less than a second")
         else message("A simulation takes about ", round(time), "s")
+        
+        if (time > 5) private$slow_sim <- TRUE
       }
       
       invisible(sim_data)
@@ -117,7 +131,9 @@ create_jaatha_model <- function(x, ..., scaling_factor = 1, test = TRUE) {
 }
 
 
-create_jaatha_model.default <- function(x, ..., scaling_factor = 1, test = TRUE) {
+create_jaatha_model.default <- function(x, ..., 
+                                        scaling_factor = 1, 
+                                        test = TRUE) {
   stop("Can create a model from an object of class '", class(x), "'")
 }
 
@@ -144,6 +160,7 @@ create_jaatha_model.default <- function(x, ..., scaling_factor = 1, test = TRUE)
 #' @inheritParams create_jaatha_model
 #'
 #' @export
+#' @export create_jaatha_model.function
 #' @examples 
 #' create_jaatha_model(function(x) rpois(10, x),
 #'                     par_ranges = matrix(c(0.1, 0.1, 10, 10), 2, 2),

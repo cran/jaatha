@@ -22,7 +22,7 @@ approximate_llh <- function(x, data, param, glm_fitted, sim, ...) {
 }
 
 #' @export
-approximate_llh.default <- function(x, data, param, glm_fitted, sim, ...) { 
+approximate_llh.default <- function(x, data, param, glm_fitted, sim, ...) { #nolint 
   stop("Unknown Summary Statistic")
 }
 
@@ -42,9 +42,9 @@ approximate_llh.jaatha_model <- function(x, data, param, glm_fitted, sim) {
 approximate_llh.jaatha_stat_basic  <- function(x, data, param, glm_fitted, 
                                                sim, scaling_factor) {
   
-  loglambda <- sapply(glm_fitted[[x$get_name()]], function(glm_obj) {
+  loglambda <- vapply(glm_fitted[[x$get_name()]], function(glm_obj) {
     glm_obj$coefficients %*% c(1, param)
-  })
+  }, numeric(1))
   
   # Calculate the Poission log-likelihood
   calc_poisson_llh(data, x, loglambda, sim, scaling_factor)
@@ -58,8 +58,8 @@ optimize_llh <- function(block, model, data, glms, sim) {
                       function(param) {
                         approximate_llh(model, data, param, glms, sim)
                       },
-                      lower = boundary[ , 1, drop = FALSE], 
-                      upper = boundary[ , 2, drop = FALSE],
+                      lower = boundary[, 1, drop = FALSE], 
+                      upper = boundary[, 2, drop = FALSE],
                       method = "L-BFGS-B", 
                       control = list(fnscale = -1))
   
@@ -69,7 +69,7 @@ optimize_llh <- function(block, model, data, glms, sim) {
 
 
 estimate_local_ml <- function(block, model, data, sim, cores, sim_cache) {
-  for (j in 1:5) {
+  for (j in 1:10) {
     sim_data <- model$simulate(pars = block$sample_pars(sim, TRUE), 
                                data = data, cores = cores)
   
@@ -79,16 +79,14 @@ estimate_local_ml <- function(block, model, data, sim, cores, sim_cache) {
     assert_that(length(sim_data) >= sim)
     
     # Fit glms and find maximal likelihood value
-    glms <- fit_glm(model, sim_data)
+    glms <- tryCatch(fit_glm(model, sim_data), error = identity)
   
     # Conduct more simulations if the glms did not converge
-    converged <- vapply(glms, function(x) {
-      all(vapply(x, function(y) y$converged, logical(1)))
-    }, logical(1))
-    if (all(converged)) {
-      break
-    }
-    if (j == 5) stop("A GLM did not converge. Check your model")
+    converged <- !vapply(glms, inherits, logical(1), what = "simpleError")
+    if (all(converged)) break
+    
+    if (j == 5) sim_cache$clear()
+    if (j == 10) return(NULL)
   }
   
   optimize_llh(block, model, data, glms, length(sim_data))

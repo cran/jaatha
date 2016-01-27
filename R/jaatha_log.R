@@ -3,19 +3,18 @@ jaatha_log_class <- R6Class("jaatha_log",
     estimates = NULL,
     final_estimates = NULL,
     reps = 0,
-    sim = 0,
     max_steps = 0,
-    init_method = "none",
     verbose = FALSE,
     par_ranges = NULL,
     converged = NULL,
+    sim_cache_limit = 0,
+    args = NULL,
     format_par = function(par) {
       paste(format(private$par_ranges$denormalize(par)), collapse = " ")
     }
   ),
   public = list(
-    initialize = function(model, data, reps, sim, max_steps, init_method, 
-                          verbose = TRUE) {
+    initialize = function(model, data, reps, max_steps, verbose = TRUE) {
       
       par_number <- model$get_par_number()
       par_names <- model$get_par_ranges()$get_par_names()
@@ -24,14 +23,14 @@ jaatha_log_class <- R6Class("jaatha_log",
         colnames(estimates) <- c("rep", "step", "llh", par_names)
         as.data.frame(estimates)
       })
-      private$final_estimates <- private$estimates[[1]][rep(1, 5 * par_number), ]
+      private$final_estimates <- 
+        private$estimates[[1]][rep(1, 5 * par_number), ]
       private$reps <- reps
-      private$sim <- sim
       private$max_steps <- max_steps
-      private$init_method <- init_method
       private$verbose <- verbose
       private$par_ranges <- model$get_par_ranges()
       private$converged <- rep(FALSE, reps)
+      private$args <- force(as.list(parent.frame(2)))
     },
     log_estimate = function(rep, step, estimate, old_llh = NULL) {
       if (rep == "final") rep <- 0.0
@@ -62,7 +61,7 @@ jaatha_log_class <- R6Class("jaatha_log",
     },
     log_convergence = function(step) {
       if (private$verbose) message(" Convergence detected")
-      private$converged[step] = TRUE
+      private$converged[step] <- TRUE
     },
     log_initialization = function(method) {
       if (!private$verbose) return(invisible(NULL))
@@ -79,7 +78,7 @@ jaatha_log_class <- R6Class("jaatha_log",
       else estimates_list <- private$estimates
       best_est <- do.call(rbind, lapply(estimates_list, function(estimates) {
         best_llh <- order(estimates$llh, decreasing = TRUE)[1:n]
-        best_llh <- best_llh[!is.na(best_llh)]
+        best_llh <- best_llh[!is.na(estimates$llh[best_llh])]
         estimates[best_llh, ]
       }))
       best_est[order(best_est$llh, decreasing = TRUE), ]
@@ -87,14 +86,11 @@ jaatha_log_class <- R6Class("jaatha_log",
     create_results = function() {
       "creates the results list the main function returns"
       best_estimate <- self$get_best_estimates(1, TRUE)
-      param <- as.numeric(best_estimate[1, -(1:3)])
+      param <- as.numeric(best_estimate[1, -(1:3)]) #nolint
       res <- list(estimate = private$par_ranges$denormalize(param),
                   loglikelihood = as.numeric(best_estimate[1, 3]),
                   converged = all(private$converged),
-                  args = list(repetitions = private$reps,
-                              sim = private$sim,
-                              max_steps = private$max_steps,
-                              init_method = private$init_method))
+                  args = private$args)
       class(res) <- c("jaatha_result", class(res))
       res
     }
@@ -102,3 +98,10 @@ jaatha_log_class <- R6Class("jaatha_log",
 )
 
 create_jaatha_log <- jaatha_log_class$new
+
+is_jaatha_result <- function(x) inherits(x, "jaatha_result")
+
+#' @export
+print.jaatha_result <- function(x, ...) {
+  print(x$estimate)
+}

@@ -3,12 +3,12 @@ context("Block")
 border <- matrix(c(0.4, 0.2, 0.6, 0.4), 2, 2)
 border_1dim <- matrix(c(0, 1), 1, 2)
 
-test_that("blocks can be initalized", {
+test_that("blocks can be initalized", { #nolint
   block <- create_block(border)
   expect_equivalent(block$get_border(), border)
   
   expect_error(create_block(t(border)))
-  expect_error(create_block(border[ , 2:1]))
+  expect_error(create_block(border[, 2:1]))
   
   expect_error(create_block(matrix(c(-1, .5, .5, 2), 2)))
   block <- create_block(matrix(c(-1, .5, .5, 2), 2), TRUE)
@@ -25,8 +25,6 @@ test_that("test if a block includes a point works", {
   expect_equal(block$includes(c(0.3, 0.3)), FALSE)
   expect_equal(block$includes(c(0.3, 0.1)), FALSE)
   expect_equal(block$includes(c(0.4, 0.61)), FALSE)
-  
-  expect_error(block$includes(0.5))
 })
 
 
