@@ -53,7 +53,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header">
 <h1 class="title">Introduction to Jaatha</h1>
 <h4 class="author"><em>Paul Staab</em></h4>
-<h4 class="date"><em>jaatha 3.1.0</em></h4>
+<h4 class="date"><em>jaatha 3.1.1</em></h4>
 </div>
 
 
@@ -106,52 +106,6 @@ par_ranges</code></pre>
 <p>Now that we have prepared model and data, we can use the <code>jaatha</code> function to estimate parameters:</p>
 <pre class="sourceCode r"><code class="sourceCode r">estimates &lt;-<span class="st"> </span><span class="kw">jaatha</span>(jaatha_model, jaatha_data, 
                     <span class="dt">sim =</span> <span class="dv">50</span>, <span class="dt">repetitions =</span> <span class="dv">2</span>, <span class="dt">verbose =</span> <span class="ot">FALSE</span>)</code></pre>
-<pre><code>## Determining starting positions using the 'zoom-in' method</code></pre>
-<pre><code>## Repetition 1 starting at 1.150691 4.909679:</code></pre>
-<pre><code>##  Step 1: Loglikelihood -16.71481, Parameter: 0.9862115 4.4437014</code></pre>
-<pre><code>##  Step 2: Loglikelihood -16.49921, Parameter: 0.8349241 4.9096786</code></pre>
-<pre><code>##  Step 3: Loglikelihood -16.7518, Parameter: 0.9862115 4.8877750</code></pre>
-<pre><code>##  Step 4: Loglikelihood -17.55662, Parameter: 1.018832 5.055097</code></pre>
-<pre><code>##  Step 5: Loglikelihood -17.33128, Parameter: 0.8649282 4.6461437</code></pre>
-<pre><code>##  Step 6: Loglikelihood -17.49427, Parameter: 1.018832 4.201304</code></pre>
-<pre><code>##  Step 7: Loglikelihood -17.79243, Parameter: 0.8716705 4.6461437</code></pre>
-<pre><code>##  Step 8: Loglikelihood -17.7776, Parameter: 1.026162 4.404336</code></pre>
-<pre><code>##  Step 9: Loglikelihood -17.72344, Parameter: 1.025964 4.866881</code></pre>
-<pre><code>##  Step 10: Loglikelihood -17.77336, Parameter: 0.9723945 4.7603850</code></pre>
-<pre><code>##  Step 11: Loglikelihood -17.80947, Parameter: 0.9946076 4.9608503</code></pre>
-<pre><code>##  Step 12: Loglikelihood -17.81496, Parameter: 1.071396 4.806203</code></pre>
-<pre><code>##  Convergence detected</code></pre>
-<pre><code>## Repetition 2 starting at 1.239188 5.043106:</code></pre>
-<pre><code>##  Step 1: Loglikelihood -17.81752, Parameter: 1.06761 5.13531</code></pre>
-<pre><code>##  Step 2: Loglikelihood -17.62898, Parameter: 0.9097934 4.9824259</code></pre>
-<pre><code>##  Step 3: Loglikelihood -17.9074, Parameter: 0.8895901 4.9738440</code></pre>
-<pre><code>##  Step 4: Loglikelihood -17.67924, Parameter: 0.8700089 5.2860051</code></pre>
-<pre><code>##  Step 5: Loglikelihood -17.70832, Parameter: 0.9738223 5.2515376</code></pre>
-<pre><code>##  Step 6: Loglikelihood -17.65681, Parameter: 0.8235286 5.1396801</code></pre>
-<pre><code>##  Step 7: Loglikelihood -17.57647, Parameter: 0.9738223 5.4352677</code></pre>
-<pre><code>##  Step 8: Loglikelihood -17.51181, Parameter: 0.8235286 5.4119019</code></pre>
-<pre><code>##  Step 9: Loglikelihood -17.60527, Parameter: 0.9329224 5.3576136</code></pre>
-<pre><code>##  Step 10: Loglikelihood -17.6858, Parameter: 0.7977082 5.0841524</code></pre>
-<pre><code>##  Step 11: Loglikelihood -17.54589, Parameter: 0.690758 5.588995</code></pre>
-<pre><code>##  Step 12: Loglikelihood -17.76604, Parameter: 0.6580736 5.3466914</code></pre>
-<pre><code>##  Step 13: Loglikelihood -17.73493, Parameter: 0.6168438 5.6099784</code></pre>
-<pre><code>##  Step 14: Loglikelihood -17.73108, Parameter: 0.7491144 5.6791155</code></pre>
-<pre><code>##  Step 15: Loglikelihood -17.82668, Parameter: 0.7048494 5.4712185</code></pre>
-<pre><code>##  Step 16: Loglikelihood -17.86704, Parameter: 0.7945814 5.4558920</code></pre>
-<pre><code>##  Step 17: Loglikelihood -17.80061, Parameter: 0.9201955 5.3622202</code></pre>
-<pre><code>##  Step 18: Loglikelihood -17.77696, Parameter: 0.9068464 5.1173485</code></pre>
-<pre><code>##  Convergence detected</code></pre>
-<pre><code>## Correcting likelihoods for best estimates:</code></pre>
-<pre><code>##  Parameter: 0.8349241 4.9096786, Loglikelihood -16.49921 -&gt; -18.29108</code></pre>
-<pre><code>##  Parameter: 0.9862115 4.4437014, Loglikelihood -16.71481 -&gt; -18.26692</code></pre>
-<pre><code>##  Parameter: 0.9862115 4.8877750, Loglikelihood -16.7518 -&gt; -17.35012</code></pre>
-<pre><code>##  Parameter: 0.8649282 4.6461437, Loglikelihood -17.33128 -&gt; -17.94983</code></pre>
-<pre><code>##  Parameter: 1.018832 4.201304, Loglikelihood -17.49427 -&gt; -18.15096</code></pre>
-<pre><code>##  Parameter: 0.8235286 5.4119019, Loglikelihood -17.51181 -&gt; -17.98732</code></pre>
-<pre><code>##  Parameter: 0.690758 5.588995, Loglikelihood -17.54589 -&gt; -18.01892</code></pre>
-<pre><code>##  Parameter: 0.9738223 5.4352677, Loglikelihood -17.57647 -&gt; -17.67388</code></pre>
-<pre><code>##  Parameter: 0.9329224 5.3576136, Loglikelihood -17.60527 -&gt; -17.55014</code></pre>
-<pre><code>##  Parameter: 0.9097934 4.9824259, Loglikelihood -17.62898 -&gt; -17.32101</code></pre>
 <p>Here, were are conducting <code>50</code> simulations in each step of the optimization procedure and repeat the complete optimization two times from different starting positions. For real applications, higher values are recommended.</p>
 <p>In this simple toy example, the above values work quite well:</p>
 <pre class="sourceCode r"><code class="sourceCode r">estimates</code></pre>

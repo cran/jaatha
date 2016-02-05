@@ -82,6 +82,8 @@ test_that("it creates the results correctly", {
                                     value = -2))
   
   results <- log$create_results()
+  expect_true(is_jaatha_result(results))
+  expect_output(print(results), "p1")
   expect_equivalent(results$estimate, 
                     model$get_par_ranges()$denormalize(c(.1, .1)))
   expect_equal(results$loglikelihood, -1)
@@ -92,4 +94,28 @@ test_that("it creates the results correctly", {
   expect_equal(log$create_results()$converged, FALSE)
   log$log_convergence(2)
   expect_equal(log$create_results()$converged, TRUE)
+})
+
+
+test_that("the output can be suppressed", {
+  model <- create_test_model()
+  log <- create_jaatha_log(model, NULL, 2, 123, verbose = FALSE)
+  expect_message(log$log_convergence(1), NA)
+  expect_message(log$log_initialization("test"), NA)
+  expect_message(log$log_new_rep(1, c(.5, .5)), NA)
+  expect_message(
+    log$log_estimate("final", 1, list(par = rep(.1, model$get_par_number()),
+                                      value = -1)),
+    NA
+  )
+  
+  model <- create_test_model()
+  log <- create_jaatha_log(model, NULL, 2, 123, verbose = TRUE)
+  expect_message(log$log_convergence(1))
+  expect_message(log$log_initialization("test"))
+  expect_message(log$log_new_rep(1, c(.5, .5)))
+  expect_message(
+    log$log_estimate("final", 1, list(par = rep(.1, model$get_par_number()),
+                                      value = -1))
+  )
 })

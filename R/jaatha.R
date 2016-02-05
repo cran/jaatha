@@ -1,5 +1,6 @@
 #' @importFrom parallel mclapply
-#' @importFrom assertthat assert_that is.string is.count
+#' @importFrom assertthat assert_that is.string is.count are_equal
+#' @importFrom R6 R6Class
 NULL
 
 #' Simulation based maximum likelihood estimation
@@ -74,10 +75,9 @@ jaatha <- function(model, data,
   assert_that(block_width > 0 && block_width < 1)
   
   # Setup
-  log <- create_jaatha_log(model, data, repetitions, max_steps, verbose = TRUE)
+  log <- create_jaatha_log(model, data, repetitions, max_steps, verbose)
   if (sim_cache_limit < sim) sim_cache_limit <- 0
   sim_cache <- create_sim_cache(sim_cache_limit) #nolint
-
   
   # Get start positions
   log$log_initialization(init_method[1])
@@ -97,7 +97,7 @@ jaatha <- function(model, data,
       
       local_ml <- estimate_local_ml(block, model, data, sim, cores, sim_cache)
       if (is.null(local_ml)) {
-        warning("A GLM failed to converge. Aborting one repetition.")
+        warning("The GLMs failed to converge. Aborting one repetition.")
         break
       }
       log$log_estimate(rep, step, local_ml)
