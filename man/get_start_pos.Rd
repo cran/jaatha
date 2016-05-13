@@ -5,7 +5,7 @@
 \title{Determine good starting postions}
 \usage{
 get_start_pos(model, data, reps, sim, init_method, cores, sim_cache,
-  block_width)
+  block_width, zoom_in_steps = 3)
 }
 \arguments{
 \item{model}{The model used for the estimation. 
@@ -22,7 +22,7 @@ See \code{\link{create_jaatha_data}}.}
 repetition is chosen.}
 
 \item{cores}{The number of CPU cores that will be used for the simulations.
-The relies on the \pkg{parallel} package, and consequenlty only one
+The relies on the \pkg{parallel} package, and consequently only one
 core is supported on Windows.}
 
 \item{sim_cache}{The simulation cache used in the jaatha analysis}
@@ -32,6 +32,10 @@ local GLM. The default value is usually fine. Increasing this value may
 help in case jaatha fails to converge, while you can try decreasing it if 
 the estimates of the likelihoods differ from the corrected values in the 
 'Correcting likelihoods for best estimates' phase.}
+
+\item{zoom_in_steps}{The number of steps conducted in the \code{zoom-in}
+initialization method. Has no effect if a different initialization method
+is used. Using the default value is usually fine.}
 }
 \value{
 The starting positions, as a matrix. Each row corresponds

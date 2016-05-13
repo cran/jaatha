@@ -1,3 +1,21 @@
+jaatha 3.2.0
+============
+
+* Adds the `cores_per_run` to `boot_jaatha` which can be set to use more than 
+  one CPU core for each replica (#128).
+* Coala support: Adds JSFS summary options `folded_sums`, which calculates
+  the standard JSFS coarsening from an unpolarized spectrum (#130).
+* Now tries to continue the estimation even when a few simulations return 
+  errors (#131).
+* Skips tests if `testthat` is not available (#132).
+* Adds new options `final_sim` and `zoom_in_steps` to the main jaatha `method` 
+  (#134).
+* Fixes a bug that lead to a broken assertion when jaatha was used on a model
+  with one parameter and `repetitions` was greater than one (#135). 
+  Thanks to Amaya Romero for reporting and locating this bug!.
+
+
+
 jaatha 3.1.1
 ============
 

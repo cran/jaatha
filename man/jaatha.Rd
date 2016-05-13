@@ -7,7 +7,7 @@
 jaatha(model, data, repetitions = 3, sim = model$get_par_number() * 25,
   max_steps = 100, init_method = c("zoom-in", "initial-search", "random",
   "middle"), cores = 1, verbose = TRUE, sim_cache_limit = 10000,
-  block_width = 0.1)
+  block_width = 0.1, final_sim = 100, zoom_in_steps = 3)
 }
 \arguments{
 \item{model}{The model used for the estimation. 
@@ -16,7 +16,7 @@ See \code{\link{create_jaatha_model}}.}
 \item{data}{The data used for the estimation.
 See \code{\link{create_jaatha_data}}.}
 
-\item{repetitions}{The number of independend optimizations that will be
+\item{repetitions}{The number of independent optimizations that will be
 conducted. You should use a value greater than one here, to minimize
 the chance that the algorithms is stuck in a local maximum.}
 
@@ -29,7 +29,7 @@ converge.}
 is chosen. See below for a description of the different options.}
 
 \item{cores}{The number of CPU cores that will be used for the simulations.
-The relies on the \pkg{parallel} package, and consequenlty only one
+The relies on the \pkg{parallel} package, and consequently only one
 core is supported on Windows.}
 
 \item{verbose}{If \code{TRUE}, information about the optimization algorithm
@@ -45,6 +45,16 @@ local GLM. The default value is usually fine. Increasing this value may
 help in case jaatha fails to converge, while you can try decreasing it if 
 the estimates of the likelihoods differ from the corrected values in the 
 'Correcting likelihoods for best estimates' phase.}
+
+\item{final_sim}{The number of simulations conducted for calculating 
+precise likelihoods for the best estimates found in the optimization
+procedure. These number of simulations is conducted for the best
+five estimates from each repetition. Using the default value is usually
+fine.}
+
+\item{zoom_in_steps}{The number of steps conducted in the \code{zoom-in}
+initialization method. Has no effect if a different initialization method
+is used. Using the default value is usually fine.}
 }
 \value{
 A list contain the results. The list has the following entries:
@@ -68,7 +78,7 @@ Simulation based maximum likelihood estimation
   starting positions. The option \code{zoom-in} starts with a block that
   is equal to the complete parameter space, estimate parameters in there,
   and then iteratively creates a smaller block around the estimates. Finally,
-  \code{random} chooses random starting postions and
+  \code{random} chooses random starting positions and
   \code{middle} will just start all repetitions at the middle of the 
   parameter space.
 }

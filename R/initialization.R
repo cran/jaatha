@@ -14,12 +14,12 @@
 #' @author Paul Staab
 #' @keywords internal
 get_start_pos <- function(model, data, reps, sim, init_method, cores, 
-                          sim_cache, block_width) {
+                          sim_cache, block_width, zoom_in_steps = 3) {
   
   start_pos <- NULL
   if (init_method[1] == "zoom-in") {
     start_pos <- do_zoom_in_search(model, data, reps, sim, 
-                                   cores, sim_cache, block_width)
+                                   cores, sim_cache, block_width, zoom_in_steps)
   } else if (init_method[1] == "initial-search") {
     start_pos <- do_initial_search(model, data, reps, sim, cores, sim_cache)
   } else if (init_method[1] == "middle") {
@@ -56,8 +56,10 @@ do_initial_search <- function(model, data, reps, sim, cores, sim_cache) {
   # Return the parameters for the best estimates
   best_indexes <- order(vapply(estimates, function(x) x$value, numeric(1)), 
                         decreasing = TRUE)[1:reps]
-  t(vapply(estimates[best_indexes], function(x) x$par, 
-           numeric(model$get_par_number())))
+  best_est <- vapply(estimates[best_indexes], function(x) x$par, 
+                     numeric(model$get_par_number()))
+  if (!is.matrix(best_est)) best_est <- matrix(best_est, nrow = 1)
+  t(best_est)
 }
 
 
@@ -100,7 +102,7 @@ do_zoom_in_search <- function(model, data, reps, sim, cores, sim_cache,
                               block_width, n_steps = 3) {
   "Starts with estimating parameters in the complete parameter space, an then 
    iteratively deceases the size of the block"
-  t(vapply(1:reps, function(i) {
+  best_est <- vapply(seq_len(reps), function(i) {
     middle <- rep(.5, model$get_par_number())
     block_widths <- utils::head(seq(1, block_width, 
                                     length.out = n_steps + 1), -1)
@@ -110,11 +112,16 @@ do_zoom_in_search <- function(model, data, reps, sim, cores, sim_cache,
                                   middle + block_width * .5), cut = TRUE)
       
       # Estimate Parameters
-      middle <- estimate_local_ml(block, model, data, sim, cores, sim_cache)$par
-      
-      # If estimation has failed, continue with the previuos best estimate
-      if (is.null(middle)) return(block$get_middle())
+      middle <- tryCatch(estimate_local_ml(block, model, data,
+                                           sim, cores, sim_cache)$par,
+                         error = function(e) {
+                           warning("Estimation failed: ", e$message, 
+                                   call. = FALSE)
+                           block$get_middle()
+                         })
     }
     middle
-  }, numeric(model$get_par_number())))
+  }, numeric(model$get_par_number()))
+  if (!is.matrix(best_est)) best_est <- matrix(best_est, nrow = 1)
+  t(best_est)
 }
