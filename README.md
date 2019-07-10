@@ -1,4 +1,4 @@
-[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+[![Project Status: Inactive - The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](http://www.repostatus.org/badges/latest/inactive.svg)](http://www.repostatus.org/#inactive)
 [![Linux Build Status](https://travis-ci.org/statgenlmu/jaatha.svg?branch=master)](https://travis-ci.org/statgenlmu/jaatha) 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/g4adpum1pkyn7ajn/branch/master?svg=true)](https://ci.appveyor.com/project/paulstaab/jaatha/branch/master)
 [![Coverage Status](https://coveralls.io/repos/statgenlmu/jaatha/badge.svg?branch=master&service=github)](https://coveralls.io/github/statgenlmu/jaatha?branch=master)
@@ -40,16 +40,13 @@ Usage
 -----
 
 The R package includes an 
-[introduction vignette](https://cran.r-project.org/web/packages/jaatha/vignettes/jaatha-intro.html) 
+[introduction vignette](https://cran.r-project.org/package=jaatha/vignettes/jaatha-intro.html) 
 that explains how to conduct a jaatha analysis. 
-A [second vignette](https://cran.r-project.org/web/packages/jaatha/vignettes/jaatha-evolution.html) 
+A [second vignette](https://cran.r-project.org/package=jaatha/vignettes/jaatha-evolution.html) 
 describes how jaatha can be used together with `coala` for demographic inference.
 
 Further help is provided using R's help system, in particular via `?jaatha`,
 `?create_jaatha_model` and `?create_jaatha_data`.
-
-You can ask questions on [jaatha's mailing list](https://groups.google.com/forum/#!forum/jaatha): 
-`jaatha (at) googlegroups (dot) com`
 
 
 Problems
