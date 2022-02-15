@@ -1,44 +1,90 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="Paul Staab" />
 
 
 <title>Demographic Inference with Jaatha</title>
 
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
-<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
 <style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -47,9 +93,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -95,7 +141,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -103,6 +149,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -116,9 +163,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -287,7 +331,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -302,7 +347,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Demographic Inference with Jaatha</h1>
 <h4 class="author">Paul Staab</h4>
-<h4 class="date">jaatha 3.2.1</h4>
+<h4 class="date">jaatha 3.2.2</h4>
 
 
 
@@ -310,16 +355,20 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="creating-a-model" class="section level2">
 <h2>Creating a Model</h2>
 <p>Jaatha automatically creates a simulation function, parameter ranges and summary statistics from a <code>coala</code> model. We can for example specify a simple isolation-with-migration model using <code>par_range</code>s to mark parameters we want to estimate with Jaatha:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(coala)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">model &lt;-<span class="st"> </span><span class="kw">coal_model</span>(<span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">15</span>), <span class="dv">100</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="st">  </span><span class="kw">feat_mutation</span>(<span class="kw">par_range</span>(<span class="st">&quot;theta&quot;</span>, <span class="dv">1</span>, <span class="dv">10</span>)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="st">  </span><span class="kw">feat_migration</span>(<span class="kw">par_range</span>(<span class="st">&quot;m&quot;</span>, <span class="dv">0</span>, <span class="dv">3</span>), <span class="dt">symmetric =</span> <span class="ot">TRUE</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">  </span><span class="kw">feat_pop_merge</span>(<span class="kw">par_range</span>(<span class="st">&quot;t_split&quot;</span>, <span class="fl">0.1</span>, <span class="dv">2</span>), <span class="dv">2</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">  </span><span class="kw">feat_recombination</span>(<span class="dv">1</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">  </span><span class="kw">sumstat_jsfs</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">if</span>(<span class="kw">require</span>(<span class="st">&quot;coala&quot;</span>)) {  </span>
+<span id="cb1-2"><a href="#cb1-2"></a>   model &lt;-<span class="st"> </span><span class="kw">coal_model</span>(<span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">15</span>), <span class="dv">100</span>) <span class="op">+</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="st">      </span><span class="kw">feat_mutation</span>(<span class="kw">par_range</span>(<span class="st">&quot;theta&quot;</span>, <span class="dv">1</span>, <span class="dv">10</span>)) <span class="op">+</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="st">      </span><span class="kw">feat_migration</span>(<span class="kw">par_range</span>(<span class="st">&quot;m&quot;</span>, <span class="dv">0</span>, <span class="dv">3</span>), <span class="dt">symmetric =</span> <span class="ot">TRUE</span>) <span class="op">+</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="st">      </span><span class="kw">feat_pop_merge</span>(<span class="kw">par_range</span>(<span class="st">&quot;t_split&quot;</span>, <span class="fl">0.1</span>, <span class="dv">2</span>), <span class="dv">2</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="st">      </span><span class="kw">feat_recombination</span>(<span class="dv">1</span>) <span class="op">+</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="st">      </span><span class="kw">sumstat_jsfs</span>()</span>
+<span id="cb1-8"><a href="#cb1-8"></a>}   </span></code></pre></div>
+<pre><code>## Lade nötiges Paket: coala</code></pre>
 <p>We can now just pass this <code>coala</code> model to the <code>create_jaatha_model</code> function to convert it into a Jaatha model:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(jaatha)</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">jaatha_model &lt;-<span class="st"> </span><span class="kw">create_jaatha_model</span>(model)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="cf">if</span>(<span class="kw">requireNamespace</span>(<span class="st">&quot;coala&quot;</span>)) {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>     <span class="kw">library</span>(jaatha)</span>
+<span id="cb3-3"><a href="#cb3-3"></a>     jaatha_model &lt;-<span class="st"> </span><span class="kw">create_jaatha_model</span>(model)</span>
+<span id="cb3-4"><a href="#cb3-4"></a>}</span></code></pre></div>
 <pre><code>## A simulation takes less than a second</code></pre>
 <p>This uses <code>coala</code> for the simulations, gets the parameter ranges specified with <code>par_range</code> and uses summary statistics added to the model. Coala supports a wide range of models. Please refer to its documentation for more information.</p>
 </div>
@@ -330,9 +379,12 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="running-jaatha" class="section level2">
 <h2>Running Jaatha</h2>
 <p>From here on, you can estimate parameters using the <code>jaatha</code> as described in the introduction vignette.</p>
-<p>If you are using a simulator that is writing temporary files to disk (e.g. <code>ms</code>, <code>msms</code> and <code>seq-gen</code>), please make sure that there is sufficient free space on your <code>tempdir()</code> to store the output of <code>sim</code> simulations per core that you use (arguments <code>sim</code> and <code>cores</code> in the <code>jaatha</code> function). Also, please make sure that your machine does not run out of memory. Both will lead to failtures during the estimation process. Reducing the number of cores reduces both the required memory and disk space at the cost of a longer runtime.</p>
+<p>If you are using a simulator that is writing temporary files to disk (e.g. <code>ms</code>, <code>msms</code> and <code>seq-gen</code>), please make sure that there is sufficient free space on your <code>tempdir()</code> to store the output of <code>sim</code> simulations per core that you use (arguments <code>sim</code> and <code>cores</code> in the <code>jaatha</code> function). Also, please make sure that your machine does not run out of memory. Both will lead to failtures during the estimation process. Reducing the number of cores reduces both the required memory and disk space at the cost of a longer runtime.</p>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
