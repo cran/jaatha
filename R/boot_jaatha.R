@@ -14,12 +14,22 @@
 #'        \code{parallel}, \code{ncpus} and \code{cl} options of 
 #'        \code{\link[boot]{boot}}.  The total number of CPU cores
 #'        used is \code{ncpus} * \code{cores_per_run}.
+#' @param verbose If TRUE (default), each bootstrap estimation is written
+#'        as a message.
 #' @param ... Additional arguments that are passed on \code{\link[boot]{boot}}.
 #'   It is highly recommended to use its \code{parallel} and \code{ncpus} 
 #'   options to parallelize the bootstrap replicates.
 #' @return The result of \code{\link[boot]{boot}}. This object can be used to
 #'   estimate standard errors or confidence intervals of the estimates using
 #'   the functions available in package \pkg{boot}.
+#'   Note that the returned object contains a vector of parameter values \code{t0}
+#'   that is the result of an additional jaatha run for the original data, whereas
+#'   the parametric bootstrap simulations used parameter values that are in the vector
+#'   \code{mle} in the returned \code{boot} object.
+#'   By default, the function \code{boot.ci} of the \code{\link[boot]{boot}} package
+#'   uses the parameter values \code{t0} as a reference point.
+#'   To use the values in \code{mle} instead, overwrite \code{t0} with \code{mle} before
+#'   applying the function \code{boot.ci}.
 #' @seealso 
 #' \code{\link[boot]{boot}}, \code{\link{jaatha}}
 #' 
@@ -44,10 +54,12 @@
 #' 
 #' stopCluster(cl)
 #' boot.ci(jaatha_boot_results, type = "norm")
+#' jaatha_boot_results$t0 <- jaatha_boot_results$mle
+#' boot.ci(jaatha_boot_results, type = "norm")
 #' }
 #' 
 #' @export
-boot_jaatha <- function(results, R, cores_per_run = 1, ...) {
+boot_jaatha <- function(results, R, cores_per_run = 1, verbose=TRUE, ...) {
   require_package("boot")
   if (R.Version()$major == 3 && R.Version()$minor < 2.2) {
     stop("This function requires at least R Version 3.2.2")
@@ -64,11 +76,16 @@ boot_jaatha <- function(results, R, cores_per_run = 1, ...) {
   dir.create(log_folder)
     
   jaatha_stat <- function(data) {
+    args$data <- data  
     utils::capture.output(results <- do.call(jaatha, args),
                           file = tempfile(paste0("boot_log_", 
                                                  Sys.getpid(), "_")), 
                           type = "message")
-    
+    if(verbose) {
+        message("Bootstrap estimation: ",
+                paste(results$estimate, collapse=" "))
+    }
+   
     results$estimate
   }
   
@@ -77,7 +94,7 @@ boot_jaatha <- function(results, R, cores_per_run = 1, ...) {
     create_jaatha_data.default(sim_data, model)
   }
   
-  boot::boot(0, jaatha_stat, R = R, 
+  boot::boot(args$data, jaatha_stat, R = R, 
              sim = "parametric",
              ran.gen = simulate_data, 
              mle = results$estimate, ...)
