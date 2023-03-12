@@ -1,4 +1,4 @@
-36a850fe2a01913a9c41f45fadbe6d1c *DESCRIPTION
+4313a3109899e3ea8ed2d85b15902b0a *DESCRIPTION
 176a7d8e2b54855e759a8730397cb72f *NAMESPACE
 6311991d12144c359fd33f7fd4a7e0b6 *NEWS.md
 7b77c270dc642a55b6bad78baec42f22 *R/block.R
@@ -10,7 +10,7 @@ f212d9f8396d31196195125e61a57883 *R/fit_glm.R
 3a78fe2b98713edb062f97b445522b29 *R/jaatha_data.R
 4b527ae9489230ab1da54e2f511c7649 *R/jaatha_log.R
 c750d2cb29978cfd74e50441143061d3 *R/jaatha_model.R
-69b0502940e08963abecf40bdcb81b13 *R/likelihood.R
+24c0d382d720e6802c9d9b5da3c93db8 *R/likelihood.R
 a56f1859690339d9c6d6b2615a18aa97 *R/par_ranges.R
 ffafa2e5f23822eef87754ecf21579b9 *R/simulation_cache.R
 c233aafe4bd3b9aaebe75db0885dcf2a *R/stat_basic.R
@@ -21,10 +21,10 @@ d752d4503d5cc836876f9584258a04ec *build/vignette.rds
 b5ac866aec58ca861181b5cf989fa656 *inst/CITATION
 72ecd9a7170356a61775d375abe0f62f *inst/doc/jaatha-evolution.R
 e5824c996041e4c73771f94f9e6ee46c *inst/doc/jaatha-evolution.Rmd
-11434801c192d2f835a822cec897511f *inst/doc/jaatha-evolution.html
+a85888dfae26bac3f931818c1a5b4dff *inst/doc/jaatha-evolution.html
 a054d0fa26e95a7c6f61977c27558ab0 *inst/doc/jaatha-intro.R
 aa56b1659ad1783c9cb8920aaca284c2 *inst/doc/jaatha-intro.Rmd
-66fa235b6493fea45f480ee844c6cf3b *inst/doc/jaatha-intro.html
+aa74977ce16fba5b16af3a81da7b60f2 *inst/doc/jaatha-intro.html
 122421b18a213550ddcd276f851e27d4 *man/boot_jaatha.Rd
 c4d814862c76d70bab13c4dfa5a5a9d6 *man/coarsen_jsfs.Rd
 300dbfad57396c343ae0a8d5b16f2d86 *man/create_jaatha_data.Rd

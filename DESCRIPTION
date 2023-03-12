@@ -1,5 +1,5 @@
 Package: jaatha
-Version: 3.2.3
+Version: 3.2.4
 License: GPL (>= 3)
 Title: Simulation-Based Maximum Likelihood Parameter Estimation
 Authors@R: c(
@@ -28,6 +28,6 @@ VignetteBuilder: knitr
 RoxygenNote: 7.2.2
 Maintainer: Dirk Metzler <metzler@bio.lmu.de>
 NeedsCompilation: no
-Packaged: 2023-01-08 10:58:40 UTC; dirk
+Packaged: 2023-03-11 14:48:53 UTC; dirk
 Repository: CRAN
-Date/Publication: 2023-01-08 16:30:02 UTC
+Date/Publication: 2023-03-12 10:30:06 UTC
