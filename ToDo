@@ -1,0 +1,1 @@
+Make it possible to run just one iteration step at a time, which includes reading the state of the previous iteration step and writing the result to an R-data file.
